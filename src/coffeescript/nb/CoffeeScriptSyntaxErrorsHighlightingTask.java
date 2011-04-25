@@ -21,13 +21,15 @@ import org.netbeans.spi.editor.hints.Severity;
 public class CoffeeScriptSyntaxErrorsHighlightingTask extends ParserResultTask<CoffeeScriptParser.ParsingResult> {
 
     public void run(CoffeeScriptParser.ParsingResult result, SchedulerEvent event) {
+        Document document = result.getSnapshot().getSource().getDocument(false);
         if ((result != null) && (result.getCompilerResult() != null) && (result.getCompilerResult().getError() != null)) {
             Error error = result.getCompilerResult().getError();
-            Document document = result.getSnapshot().getSource().getDocument(false);
             int line = error.getLine() == -1 ? 0 : error.getLine();
             String msg = error.getLine() == -1 ? error.getMessage() : error.getErrorName();
             ErrorDescription errorDescription = ErrorDescriptionFactory.createErrorDescription(Severity.ERROR, msg, document, line);
             HintsController.setErrors(document, CoffeeScriptLanguage.MIME_TYPE, Collections.singleton(errorDescription));
+        } else {
+            HintsController.setErrors(document, CoffeeScriptLanguage.MIME_TYPE, Collections.<ErrorDescription>emptyList());
         }
     }
 
