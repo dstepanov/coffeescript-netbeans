@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module codename="coffeescript.nb/1">
-    <module_version install_time="1303760351898" last="true" origin="installer" specification_version="0.6">
-        <file crc="2317252017" name="config/Modules/coffeescript-nb.xml"/>
-        <file crc="3787348390" name="modules/coffeescript-nb.jar"/>
-        <file crc="3257827443" name="modules/ext/js.jar"/>
-    </module_version>
-</module>
