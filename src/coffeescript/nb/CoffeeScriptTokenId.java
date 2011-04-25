@@ -32,23 +32,22 @@ public enum CoffeeScriptTokenId implements TokenId {
     ANY_KEYWORD(null, KEYWORD_CAT),
     ANY_OPERATOR(null, OPERATOR_CAT),
     DOT(null, OPERATOR_CAT),
-    THIS("this", KEYWORD_CAT), 
-    FOR("for", KEYWORD_CAT), 
-    IF("if", KEYWORD_CAT), 
-    ELSE("else", KEYWORD_CAT), 
-    WHILE("while", KEYWORD_CAT), 
-    CASE("case", KEYWORD_CAT), 
-    DEFAULT("default", KEYWORD_CAT), 
-    BREAK("break", KEYWORD_CAT), 
-    SWITCH("switch", KEYWORD_CAT), 
-
-    COLON(":", OPERATOR_CAT), 
-
-    SEMI(";", OPERATOR_CAT), 
-    FUNCTION("function", KEYWORD_CAT), 
-    FIELD(null, FIELD_CAT), 
-
-    NONUNARY_OP(null, OPERATOR_CAT);
+    THIS("this", KEYWORD_CAT),
+    FOR("for", KEYWORD_CAT),
+    IF("if", KEYWORD_CAT),
+    ELSE("else", KEYWORD_CAT),
+    WHILE("while", KEYWORD_CAT),
+    CASE("case", KEYWORD_CAT),
+    DEFAULT("default", KEYWORD_CAT),
+    BREAK("break", KEYWORD_CAT),
+    SWITCH("switch", KEYWORD_CAT),
+    COLON(":", OPERATOR_CAT),
+    SEMI(";", OPERATOR_CAT),
+    FUNCTION("function", KEYWORD_CAT),
+    FIELD(null, FIELD_CAT),
+    NONUNARY_OP(null, OPERATOR_CAT),
+    EMBEDDED_RUBY(null, "");
+    
     private final String fixedText;
     private final String primaryCategory;
 

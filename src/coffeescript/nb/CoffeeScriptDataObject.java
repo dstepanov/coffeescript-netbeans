@@ -33,4 +33,5 @@ public class CoffeeScriptDataObject extends MultiDataObject {
     public Lookup getLookup() {
         return getCookieSet().getLookup();
     }
+    
 }

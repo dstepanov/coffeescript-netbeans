@@ -13,7 +13,7 @@ import org.netbeans.spi.lexer.LexerRestartInfo;
  */
 public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId> {
 
-    public static final String COFFEESCRIPT_MIME_TYPE = "text/coffeescript"; //NOI18N
+    public static final String MIME_TYPE = "text/coffeescript"; //NOI18N
     private static final Language<CoffeeScriptTokenId> LANGUAGE = new CoffeeScriptLanguage().language();
 
     public static final Language<CoffeeScriptTokenId> getLanguage() {
@@ -34,6 +34,6 @@ public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId>
 
     @Override
     protected String mimeType() {
-        return COFFEESCRIPT_MIME_TYPE;
+        return MIME_TYPE;
     }
 }

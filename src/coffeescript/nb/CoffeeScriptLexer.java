@@ -3,7 +3,6 @@ package coffeescript.nb;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 import org.mozilla.nb.javascript.CompilerEnvirons;
 import org.mozilla.nb.javascript.ContextFactory;
 import org.mozilla.nb.javascript.ErrorReporter;
@@ -43,8 +42,6 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
     private static CoffeeScriptLexer cachedLexer;
     private final static Set<String> COFFEE_KEYWORDS = new HashSet<String>(Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "'when"));
     private final static Set<String> COFFEE_ALIASES = new HashSet<String>(Arrays.asList("and", "or", "is", "isnt", "not", "yes", "no", "on", "off"));
-    private final static Pattern REGEX_PATTERN = Pattern.compile("\\/(?!\\s)[^\\/\\n\\\\]*(?:(?:\\\\[\\s\\S]|\\[[^\\]\\n\\\\]*(?:\\\\[\\s\\S][^\\]\\n\\\\]*)*])[^\\/\\n\\\\]*)*\\/[imgy]{0,4}(?!\\w)");
-    private final static Pattern H_PATTERN = Pattern.compile("/{3}([\\s\\S]+?)/{3}([imgy]{0,4})", Pattern.MULTILINE);
 
     private CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
         // TODO Use Rhino's scanner and TokenStream classes.
@@ -135,9 +132,6 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
     public org.netbeans.api.lexer.Token<CoffeeScriptTokenId> nextToken() {
         int token = readToken();
         CoffeeScriptTokenId tokenType = getTokenId(token);
-        if (tokenType == CoffeeScriptTokenId.REGEXP_LITERAL) {
-            System.out.println(input.readText());
-        }
         int tokenLength = input.readLength();
         if (tokenLength < 1) {
             if (token == Token.EOF) {

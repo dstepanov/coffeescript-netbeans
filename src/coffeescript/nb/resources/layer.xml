@@ -76,8 +76,9 @@
     <folder name="Editors">
         <folder name="text">
             <folder name="coffeescript">
-<!--                <file name="coffeescript-nb-CoffeeScriptParser$Factory.instance"/>-->
-<!--                <file name="coffeescript-nb-CoffeeScriptSyntaxErrorsHighlightingTask$Factory.instance"/>-->
+                <file name="coffeescript-nb-CoffeeScriptParser$Factory.instance"/>
+                <file name="coffeescript-nb-CoffeeScriptSyntaxErrorsHighlightingTask$Factory.instance"/>
+                <file name="coffeescript-nb-CoffeeScriptEmbeddingProvider$Factory.instance"/>
                 <file name="language.instance">
                     <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptLanguage.getLanguage"/>
                     <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
