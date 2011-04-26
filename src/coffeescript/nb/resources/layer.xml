@@ -77,6 +77,10 @@
         <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance">
             <attr name="position" intvalue="0"/>
         </file>
+        <file name="language.instance">
+            <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptLanguage.getLanguage"/>
+            <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
+        </file>
         <folder name="text">
             <folder name="coffeescript">
                 <file name="coffeescript-nb-CoffeeScriptParser$Factory.instance"/>
@@ -89,8 +93,29 @@
                 <folder name="FontsColors">
                     <folder name="NetBeans">
                         <folder name="Defaults">
-                            <file name="FontAndColors.xml">
-                                <attr name="displayName" bundlevalue="coffeescript.nb.resources.Bundle#Editors/text/coffeescript/FontsColors/NetBeans/Defaults/FontAndColors.xml"/>
+                            <file name="FontAndColors.xml" url="FontAndColors.xml">
+                                <attr name="SystemFileSystem.localizingBundle" stringvalue="coffeescript.nb.resources.Bundle"/>
+                            </file>
+                        </folder>
+                    </folder>
+                </folder>
+            </folder>
+            <folder name="coffeescript-string">
+                <file name="coffeescript-string.instance">
+                    <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptStringLanguage.getLanguage"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
+                </file>
+            </folder>
+            <folder name="coffeescript-regexp">
+                <file name="coffeescript-regexp.instance">
+                    <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptRegexpLanguage.getLanguage"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
+                </file>
+                <folder name="FontsColors">
+                    <folder name="NetBeans">
+                        <folder name="Defaults">
+                            <file name="FontAndColors.xml" url="FontAndColors.xml">
+                                <attr name="SystemFileSystem.localizingBundle" stringvalue="coffeescript.nb.resources.Bundle"/>
                             </file>
                         </folder>
                     </folder>

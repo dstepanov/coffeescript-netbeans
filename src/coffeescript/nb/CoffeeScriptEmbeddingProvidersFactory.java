@@ -19,10 +19,10 @@ import org.netbeans.modules.parsing.spi.TaskFactory;
  * @author Denis Stepanov
  */
 public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
-    
+
     public Collection<? extends SchedulerTask> create(Snapshot snapshot) {
         if(true){
-            return null; 
+            return null;
         }
         for (int i = 0; i < snapshot.getMimePath().size(); i++) {
             if (snapshot.getMimePath().getMimeType(i).equals(CoffeeScriptLanguage.MIME_TYPE)) {
@@ -43,9 +43,9 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
         }
         return ems;
     }
-    
+
     public static class HTMLEmbeddingProvider extends EmbeddingProvider {
-        
+
         @Override
         public List<Embedding> getEmbeddings(Snapshot snapshot) {
             if (snapshot.getMimePath().size() > 1 && snapshot.getMimePath().getMimeType(1).equals("text/javascript")) {
@@ -63,16 +63,16 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
             }
             return Collections.singletonList(Embedding.create(embeddings));
         }
-        
+
         @Override
         public int getPriority() {
             return Integer.MAX_VALUE;
         }
-        
+
         @Override
         public void cancel() {
         }
-        
+
         private static void extractJavaScriptFromHtml(Snapshot snapshot, TokenSequence<? extends HTMLTokenId> ts, List<Embedding> embeddings) {
             boolean inCoffeeScript = false;
             ts.moveStart();
