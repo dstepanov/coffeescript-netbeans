@@ -70,7 +70,7 @@ public class CoffeeScriptParser extends Parser {
         }
 
         protected void invalidate() {
-            compilerResult = null;
+//            compilerResult = null;
         }
     }
 }

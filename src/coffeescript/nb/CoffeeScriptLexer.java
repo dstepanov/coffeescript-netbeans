@@ -92,9 +92,9 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
         if (lexer == null) {
             lexer = new CoffeeScriptLexer(info);
         }
-
+        
         lexer.restart(info);
-
+        
         return lexer;
     }
 

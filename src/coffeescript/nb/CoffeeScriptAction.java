@@ -13,6 +13,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.execution.ExecutionEngine;
 import org.openide.execution.ExecutorTask;
+import org.openide.filesystems.FileObject;
 import org.openide.util.Cancellable;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.ImageUtilities;
@@ -72,6 +73,13 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
                         return; // Canceled
                     }
                     if (result.getJs() != null) {
+                        FileObject folder = data.getFolder().getPrimaryFile();
+                        FileObject file = folder.getFileObject(data.getName(), "js");
+                        if (file != null) {
+                            file.delete();
+                        }
+                        file = folder.createData(data.getName(), "js");
+                        file.getOutputStream().write(result.getJs().getBytes());
                         io.getOut().append(result.getJs());
                     } else {
                         io.getErr().append(result.getError().getMessage());
