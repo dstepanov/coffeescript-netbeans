@@ -1,6 +1,5 @@
 package coffeescript.nb;
 
-import coffeescript.nb.CoffeeScriptRhinoCompiler.CompilerResult;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -36,7 +35,7 @@ public class CoffeeScriptParser extends Parser {
 
     public Result getResult(Task task) throws ParseException {
         try {
-            return future.get(15, TimeUnit.SECONDS);
+            return future.get(60, TimeUnit.SECONDS);
         } catch (Exception ex) {
         } // Ignore
         future.cancel(true);
@@ -65,7 +64,7 @@ public class CoffeeScriptParser extends Parser {
             this.compilerResult = compilerResult;
         }
 
-        public CompilerResult getCompilerResult() {
+        public CoffeeScriptCompiler.CompilerResult getCompilerResult() {
             return compilerResult;
         }
 

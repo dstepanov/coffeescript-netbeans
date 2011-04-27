@@ -1,6 +1,5 @@
 package coffeescript.nb;
 
-import coffeescript.nb.CoffeeScriptRhinoCompiler.Error;
 import java.util.Collection;
 import java.util.Collections;
 import javax.swing.text.Document;
@@ -23,7 +22,7 @@ public class CoffeeScriptSyntaxErrorsHighlightingTask extends ParserResultTask<C
     public void run(CoffeeScriptParser.ParsingResult result, SchedulerEvent event) {
         Document document = result.getSnapshot().getSource().getDocument(false);
         if ((result != null) && (result.getCompilerResult() != null) && (result.getCompilerResult().getError() != null)) {
-            Error error = result.getCompilerResult().getError();
+            CoffeeScriptCompiler.Error error = result.getCompilerResult().getError();
             int line = error.getLine() == -1 ? 0 : error.getLine();
             String msg = error.getLine() == -1 ? error.getMessage() : error.getErrorName();
             ErrorDescription errorDescription = ErrorDescriptionFactory.createErrorDescription(Severity.ERROR, msg, document, line);
