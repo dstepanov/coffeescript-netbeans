@@ -15,9 +15,12 @@ import org.openide.util.Exceptions;
 /**
  * @author Denis Stepanov
  */
-public class CoffeeScriptAutobuildTask extends ParserResultTask<CoffeeScriptParser.ParsingResult> {
+public class CoffeeScriptAutocompileTask extends ParserResultTask<CoffeeScriptParser.ParsingResult> {
 
     public void run(final CoffeeScriptParser.ParsingResult result, SchedulerEvent event) {
+        if ((result != null) && !CoffeeScriptAutocompileContext.get().isEnabled(result.getSnapshot().getSource().getFileObject())) {
+            return;
+        }
         if ((result != null) && (result.getCompilerResult() != null) && (result.getCompilerResult().getJs() != null)) {
             final FileObject coffeeFile = result.getSnapshot().getSource().getFileObject();
             final String js = result.getCompilerResult().getJs();
@@ -53,7 +56,7 @@ public class CoffeeScriptAutobuildTask extends ParserResultTask<CoffeeScriptPars
     public static class Factory extends TaskFactory {
 
         public Collection<? extends SchedulerTask> create(Snapshot snapshot) {
-            return Collections.singleton(new CoffeeScriptAutobuildTask());
+            return Collections.singleton(new CoffeeScriptAutocompileTask());
         }
     }
 }

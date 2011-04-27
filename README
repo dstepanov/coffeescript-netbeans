@@ -1,14 +1,37 @@
 CoffeeScript editor fro NetBeans IDE
 
 http://netbeans.org/
+                              )         )
+                             (     (     )   (
+                            (     (     (     )
+                             )   (      )     )
+                            (     )    (     (
+                                    )        )
+                        ___________________________
+                       |                            ~\
+                       |                          |\  \
+                       |                          | )  )
+                       |                          |/  /
+                       |                             /
+                        \                         /~~
+                         \                       /
+                          \____________________ /
+                ________________________________________
+                \______________________________________/
 
 FEATURES:
 
-* Basic syntax highlighting 
+* Just works! 
+    (No need for additional dependencies)
+
+* Syntax highlighting 
     (Editor is implemented on top of the Rhino JavaScript lexer with additional syntax corrections)
 
 * Error checking by background compiling
     (Rhino JavaScript engine is used to compile *.coffee files)
+
+* Autocompiling to a JavaScript file in the same directory
+    (Test it in a web browser right away)
 
 INSTRUCTIONS:
 
@@ -19,3 +42,7 @@ Plugin supports NetBeans 7.0
 LICENSE:
 
 Apache License
+
+COPYRIGHT:
+
+2011 Denis Stepanov
