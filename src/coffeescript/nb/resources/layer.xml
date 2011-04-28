@@ -77,12 +77,12 @@
         <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance">
             <attr name="position" intvalue="0"/>
         </file>
-        <file name="language.instance">
-            <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptLanguage.getLanguage"/>
-            <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
-        </file>
         <folder name="text">
             <folder name="coffeescript">
+                <file name="language.instance">
+                    <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptLanguage.getLanguage"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
+                </file>
                 <file name="coffeescript-nb-CoffeeScriptParser$Factory.instance"/>
                 <file name="coffeescript-nb-CoffeeScriptSyntaxErrorsHighlightingTask$Factory.instance"/>
                 <file name="coffeescript-nb-CoffeeScriptAutocompileTask$Factory.instance"/>
