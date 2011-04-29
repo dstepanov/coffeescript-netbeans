@@ -1,5 +1,7 @@
 package coffeescript.nb;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerInput;
@@ -11,28 +13,47 @@ import org.netbeans.spi.lexer.TokenFactory;
  * @author Denis Stepanov
  */
 public class CoffeeScriptStringLexer implements Lexer<CoffeeScriptStringTokenId> {
-    
+
     private LexerInput input;
     private TokenFactory<CoffeeScriptStringTokenId> tokenFactory;
     private boolean inEmbedded;
-    
+
     public CoffeeScriptStringLexer(LexerRestartInfo<CoffeeScriptStringTokenId> info) {
         this.input = info.input();
         this.tokenFactory = info.tokenFactory();
     }
-    
+
     public Token<CoffeeScriptStringTokenId> nextToken() {
         if (inEmbedded) {
+            Deque<Character> stack = new LinkedList<Character>();
+            stack.add('}');
+            int c = input.read();
             while (true) {
-                int c = input.read();
-                if ((c == LexerInput.EOF) || (c == '}')) {
-                    if (input.readLength() > 1) {
-                        input.backup(1);
-                        return tokenFactory.createToken(CoffeeScriptStringTokenId.EMBEDDED);
-                    } else {
+                if (stack.element() == c) {
+                    stack.poll();
+                    if (stack.isEmpty()) {
+                        if (input.readLength() > 1) {
+                            input.backup(1);
+                            return tokenFactory.createToken(CoffeeScriptStringTokenId.EMBEDDED);
+                        }
                         break;
                     }
+                } else if (c == '#') {
+                    c = input.read();
+                    if (c == '{') {
+                        stack.push('}');
+                    } else {
+                        continue;
+                    }
+                } else if (c == '\\') {
+                    c = input.read();
+                } else if (c == LexerInput.EOF) {
+                    if (input.readLength() > 0) {
+                        return tokenFactory.createToken(CoffeeScriptStringTokenId.STRING);
+                    }
+                    return null;
                 }
+                c = input.read();
             }
         }
         while (true) {
@@ -52,11 +73,11 @@ public class CoffeeScriptStringLexer implements Lexer<CoffeeScriptStringTokenId>
             }
         }
     }
-    
+
     public Object state() {
         return null;
     }
-    
+
     public void release() {
     }
 }

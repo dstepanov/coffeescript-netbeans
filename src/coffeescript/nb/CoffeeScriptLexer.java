@@ -1,8 +1,12 @@
 package coffeescript.nb;
 
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
+import org.mozilla.javascript.Kit;
 import org.mozilla.nb.javascript.CompilerEnvirons;
 import org.mozilla.nb.javascript.ContextFactory;
 import org.mozilla.nb.javascript.ErrorReporter;
@@ -92,9 +96,9 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
         if (lexer == null) {
             lexer = new CoffeeScriptLexer(info);
         }
-        
+
         lexer.restart(info);
-        
+
         return lexer;
     }
 
@@ -130,15 +134,55 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
     }
 
     public org.netbeans.api.lexer.Token<CoffeeScriptTokenId> nextToken() {
-        int token = readToken();
-        CoffeeScriptTokenId tokenType = getTokenId(token);
-        int tokenLength = input.readLength();
-        if (tokenLength < 1) {
-            if (token == Token.EOF) {
-                return null;
+        int c = input.read();
+        if (c == '"') {
+            Deque<Character> stack = new LinkedList<Character>();
+            stack.add((char) c);
+            c = input.read();
+            while (true) {
+                if (stack.element() == c) {
+                    stack.poll();
+                    if (stack.isEmpty()) {
+                        return tokenFactory.createToken(CoffeeScriptTokenId.STRING_LITERAL);
+                    }
+                } else if (c == '#') {
+                    c = input.read();
+                    if (c == '{') {
+                        stack.push('}');
+                    } else {
+                        continue;
+                    }
+                } else if (c == '\\') {
+                    c = input.read();
+                } else if (c == LexerInput.EOF) {
+                    return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                }
+                c = input.read();
             }
+        } else if (c == '\'') {
+            c = input.read();
+            while (true) {
+                if (c == '\'') {
+                    return tokenFactory.createToken(CoffeeScriptTokenId.SIMPLE_STRING_LITERAL);
+                } else if (c == '\\') {
+                    c = input.read();
+                } else if (c == LexerInput.EOF) {
+                    return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                }
+                c = input.read();
+            }
+        } else {
+            input.backup(1);
+            int token = readToken();
+            CoffeeScriptTokenId tokenType = getTokenId(token);
+            int tokenLength = input.readLength();
+            if (tokenLength < 1) {
+                if (token == Token.EOF) {
+                    return null;
+                }
+            }
+            return token(tokenType, tokenLength);
         }
-        return token(tokenType, tokenLength);
     }
 
     private int readToken() {

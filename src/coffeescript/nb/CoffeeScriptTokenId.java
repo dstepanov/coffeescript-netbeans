@@ -15,6 +15,7 @@ public enum CoffeeScriptTokenId implements TokenId {
     REGEXP_LITERAL(null, REGEXP_CAT),
     FLOAT_LITERAL(null, NUMBER_CAT),
     STRING_LITERAL(null, STRING_CAT),
+    SIMPLE_STRING_LITERAL(null, STRING_CAT),
     WHITESPACE(null, WHITESPACE_CAT),
     EOL(null, WHITESPACE_CAT),
     LINE_COMMENT(null, COMMENT_CAT),
@@ -47,7 +48,6 @@ public enum CoffeeScriptTokenId implements TokenId {
     FIELD(null, FIELD_CAT),
     NONUNARY_OP(null, OPERATOR_CAT),
     EMBEDDED_RUBY(null, "");
-    
     private final String fixedText;
     private final String primaryCategory;
 
