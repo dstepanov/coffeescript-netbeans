@@ -13,6 +13,7 @@ public enum CoffeeScriptTokenId implements TokenId {
     NEW("new", KEYWORD_CAT),
     IDENTIFIER(null, IDENTIFIER_CAT),
     REGEXP_LITERAL(null, REGEXP_CAT),
+    HEREGEX(null, REGEXP_CAT),
     FLOAT_LITERAL(null, NUMBER_CAT),
     STRING_LITERAL(null, STRING_CAT),
     SIMPLE_STRING_LITERAL(null, STRING_CAT),
