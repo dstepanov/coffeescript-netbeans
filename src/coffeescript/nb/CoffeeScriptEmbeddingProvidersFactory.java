@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.api.html.lexer.HTMLTokenId;
+import org.netbeans.api.lexer.Language;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenId;
 import org.netbeans.api.lexer.TokenSequence;
@@ -15,20 +17,12 @@ import org.netbeans.modules.parsing.spi.SchedulerTask;
 import org.netbeans.modules.parsing.spi.TaskFactory;
 
 /**
- * 
+ * Doesn't work because of http://netbeans.org/bugzilla/show_bug.cgi?id=162990 ???
  * @author Denis Stepanov
  */
 public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
 
     public Collection<? extends SchedulerTask> create(Snapshot snapshot) {
-        if(true){
-            return null;
-        }
-        for (int i = 0; i < snapshot.getMimePath().size(); i++) {
-            if (snapshot.getMimePath().getMimeType(i).equals(CoffeeScriptLanguage.MIME_TYPE)) {
-                return null;
-            }
-        }
         if (!snapshot.getSource().getMimeType().equals("text/xhtml")) {
             if (snapshot.getMimeType().equals("text/html") && snapshot.getMimePath().size() > 1) { //NOI18N
                 return null;
@@ -38,7 +32,7 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
             return null;
         }
         List<SchedulerTask> ems = new ArrayList<SchedulerTask>();
-        if (snapshot.getSource().getMimeType().equals("text/html")) {
+        if (snapshot.getSource().getMimeType().equals("text/html") && snapshot.getMimePath().size() == 1) {
             ems.add(new HTMLEmbeddingProvider());
         }
         return ems;
@@ -48,9 +42,6 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
 
         @Override
         public List<Embedding> getEmbeddings(Snapshot snapshot) {
-            if (snapshot.getMimePath().size() > 1 && snapshot.getMimePath().getMimeType(1).equals("text/javascript")) {
-                return Collections.singletonList(snapshot.create(0, snapshot.getText().length(), CoffeeScriptLanguage.MIME_TYPE));
-            }
             List<Embedding> embeddings = new ArrayList<Embedding>();
             TokenSequence<? extends TokenId> tokenSequence = snapshot.getTokenHierarchy().tokenSequence(HTMLTokenId.language());
             if (tokenSequence != null) {
@@ -61,7 +52,7 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
             if (embeddings.isEmpty()) {
                 return Collections.<Embedding>emptyList();
             }
-            return Collections.singletonList(Embedding.create(embeddings));
+            return embeddings;
         }
 
         @Override
@@ -73,7 +64,7 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
         public void cancel() {
         }
 
-        private static void extractJavaScriptFromHtml(Snapshot snapshot, TokenSequence<? extends HTMLTokenId> ts, List<Embedding> embeddings) {
+        private void extractJavaScriptFromHtml(Snapshot snapshot, TokenSequence<? extends HTMLTokenId> ts, List<Embedding> embeddings) {
             boolean inCoffeeScript = false;
             ts.moveStart();
             while (ts.moveNext()) {
