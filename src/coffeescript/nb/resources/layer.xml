@@ -74,11 +74,10 @@
         </folder>
     </folder>
     <folder name="Editors">
-        <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance">
-            <attr name="position" intvalue="0"/>
-        </file>
+        <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance"/>
         <folder name="text">
             <folder name="coffeescript">
+                <attr name="SystemFileSystem.localizingBundle" stringvalue="coffeescript.nb.resources.Bundle"/>
                 <file name="language.instance">
                     <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptLanguage.getLanguage"/>
                     <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>

@@ -49,11 +49,11 @@ public enum CoffeeScriptTokenId implements TokenId {
     DEC("--", OPERATOR_CAT);
     //
     private final String fixedText;
-    private final String primaryCategory;
+    private final Category category;
 
-    CoffeeScriptTokenId(String fixedText, Category primaryCategory) {
+    CoffeeScriptTokenId(String fixedText, Category category) {
         this.fixedText = fixedText;
-        this.primaryCategory = primaryCategory.getName();
+        this.category = category;
     }
 
     public String fixedText() {
@@ -61,14 +61,14 @@ public enum CoffeeScriptTokenId implements TokenId {
     }
 
     public String primaryCategory() {
-        return primaryCategory;
+        return category.getName();
     }
 
     public static enum Category {
 
         COMMENT_CAT("comment"),
         KEYWORD_CAT("keyword"),
-        REGEXP_CAT("mod-regexp"),
+        REGEXP_CAT("regexp"),
         STRING_CAT("string"),
         WHITESPACE_CAT("whitespace"),
         OPERATOR_CAT("operator"),

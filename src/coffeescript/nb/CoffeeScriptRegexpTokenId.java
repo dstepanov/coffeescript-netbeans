@@ -8,7 +8,7 @@ import org.netbeans.api.lexer.TokenId;
  */
 public enum CoffeeScriptRegexpTokenId implements TokenId {
 
-    REGEXP("mod-regexp"),
+    REGEXP("regexp"),
     EMBEDDED("embedded"),
     COMMENT("comment");
     //
