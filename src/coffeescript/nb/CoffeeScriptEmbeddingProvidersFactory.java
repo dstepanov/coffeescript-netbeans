@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.api.html.lexer.HTMLTokenId;
-import org.netbeans.api.lexer.Language;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenId;
 import org.netbeans.api.lexer.TokenSequence;
@@ -52,7 +50,7 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
             if (embeddings.isEmpty()) {
                 return Collections.<Embedding>emptyList();
             }
-            return embeddings;
+            return Collections.singletonList(Embedding.create(embeddings));
         }
 
         @Override
