@@ -3,6 +3,7 @@ package coffeescript.nb;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
+import static coffeescript.nb.CoffeeScriptRegexpTokenId.*;
 
 /**
  *
@@ -23,12 +24,12 @@ public class CoffeeScriptRegexpLexer extends CoffeeScriptLexerBase<CoffeeScriptR
                 if (balancedInterpolatedString("}")) {
                     if (input.readLength() > 1) {
                         input.backup(1);
-                        return token(CoffeeScriptRegexpTokenId.EMBEDDED);
+                        return token(EMBEDDED);
                     } else if (input.readLength() == 0) {
                         return null;
                     }
                 }
-                return token(CoffeeScriptRegexpTokenId.REGEXP);
+                return token(REGEXP);
             } finally {
                 inEmbedded = false;
             }
@@ -38,14 +39,25 @@ public class CoffeeScriptRegexpLexer extends CoffeeScriptLexerBase<CoffeeScriptR
             switch (ch) {
                 case LexerInput.EOF:
                     if (input.readLength() > 0) {
-                        return token(CoffeeScriptRegexpTokenId.REGEXP);
+                        return token(REGEXP);
                     } else {
                         return null;
                     }
                 case '#':
                     if (inputMatch("{")) {
                         inEmbedded = true;
-                        return token(CoffeeScriptRegexpTokenId.REGEXP);
+                        return token(REGEXP);
+                    } else {
+                        if (input.readLength() > 1) {
+                            input.backup(1);
+                            return token(REGEXP);
+                        }
+                        while (true) {
+                            int c = input.read();
+                            if (c == '\n' || c == LexerInput.EOF) {
+                                return token(COMMENT);
+                            }
+                        }
                     }
             }
         }
