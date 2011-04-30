@@ -21,17 +21,6 @@ import static coffeescript.nb.CoffeeScriptTokenId.*;
  */
 public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId> {
 
-    public static final String COMMENT_CAT = "comment";
-    public static final String KEYWORD_CAT = "keyword"; // NOI18N
-    public static final String REGEXP_CAT = "mod-regexp"; // NOI18N
-    public static final String STRING_CAT = "string"; // NOI18N
-    public static final String WHITESPACE_CAT = "whitespace"; // NOI18N
-    public static final String OPERATOR_CAT = "operator"; // NOI18N
-    public static final String SEPARATOR_CAT = "separator"; // NOI18N
-    public static final String ERROR_CAT = "error"; // NOI18N
-    public static final String NUMBER_CAT = "number"; // NOI18N
-    public static final String IDENTIFIER_CAT = "identifier"; // NOI18N
-    public static final String FIELD_CAT = "field"; // NOI18N
     private Parser parser;
     private TokenStream tokenStream;
     private final static Set<String> COFFEE_KEYWORDS = new HashSet<String>(Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "'when"));
@@ -203,7 +192,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case Token.EOL://            = 1,  // end of line
                 return EOL;
             case Token.FUNCTION:
-                return FUNCTION;
+                return ERROR;
             case Token.THIS:
                 return THIS;
             case Token.FOR:
@@ -252,21 +241,17 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case Token.NUMBER:
                 return FLOAT_LITERAL;
             case Token.STRING_BEGIN:
-                return STRING_BEGIN;
             case Token.STRING:
-                return STRING_LITERAL;
             case Token.STRING_END:
-                return STRING_END;
+                return STRING_LITERAL;
             case Token.DIV:
                 return NONUNARY_OP;
             case Token.ASSIGN_DIV:
                 return ANY_OPERATOR;
             case Token.REGEXP_BEGIN:
-                return REGEXP_BEGIN;
             case Token.REGEXP:
-                return REGEXP_LITERAL;
             case Token.REGEXP_END:
-                return REGEXP_END;
+                return REGEXP;
             case Token.IFEQ://           = 6,
             case Token.IFNE://           = 7,
             case Token.BITOR://          = 9,
