@@ -22,6 +22,20 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
         this.tokenFactory = tokenFactory;
     }
 
+    protected boolean balancedString(String last) {
+        while (true) {
+            if (inputMatch(last)) {
+                return true;
+            }
+            int c = input.read();
+            if (c == '\\') {
+                c = input.read();
+            } else if (c == LexerInput.EOF) {
+                return false;
+            }
+        }
+    }
+
     protected boolean balancedInterpolatedString(String last) {
         Deque<Character> stack = new LinkedList<Character>();
         while (true) {
