@@ -56,7 +56,7 @@ public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId>
 
     @Override
     protected EmbeddingPresence embeddingPresence(CoffeeScriptTokenId id) {
-        if (id == CoffeeScriptTokenId.STRING_LITERAL) {
+        if (id == CoffeeScriptTokenId.STRING) {
             return EmbeddingPresence.ALWAYS_QUERY;
         }
         if (id == CoffeeScriptTokenId.HEREGEX) {
@@ -67,7 +67,7 @@ public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId>
 
     @Override
     protected LanguageEmbedding<?> embedding(Token<CoffeeScriptTokenId> token, LanguagePath languagePath, InputAttributes inputAttributes) {
-        if (token.id() == CoffeeScriptTokenId.STRING_LITERAL) {
+        if (token.id() == CoffeeScriptTokenId.STRING) {
             return LanguageEmbedding.create(CoffeeScriptStringLanguage.getLanguage(), 0, 0);
         }
         if (token.id() == CoffeeScriptTokenId.HEREGEX) {

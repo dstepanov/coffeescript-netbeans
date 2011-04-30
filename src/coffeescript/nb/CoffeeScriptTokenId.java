@@ -12,16 +12,15 @@ public enum CoffeeScriptTokenId implements TokenId {
     ERROR(null, ERROR_CAT),
     NEW("new", KEYWORD_CAT),
     IDENTIFIER(null, IDENTIFIER_CAT),
-    REGEXP(null, REGEXP_CAT),
+    REGEX(null, REGEXP_CAT),
     HEREGEX(null, REGEXP_CAT),
-    FLOAT_LITERAL(null, NUMBER_CAT),
-    STRING_LITERAL(null, STRING_CAT),
-    SIMPLE_STRING_LITERAL(null, STRING_CAT),
-    BOOL(null, STRING_CAT),
+    NUMBER(null, NUMBER_CAT),
+    STRING(null, STRING_CAT),
+    SIMPLE_STRING(null, STRING_CAT),
+    BOOL(null, KEYWORD_CAT),
     WHITESPACE(null, WHITESPACE_CAT),
     EOL(null, WHITESPACE_CAT),
-    LINE_COMMENT(null, COMMENT_CAT),
-    BLOCK_COMMENT(null, COMMENT_CAT),
+    COMMENT(null, COMMENT_CAT),
     LPAREN("(", SEPARATOR_CAT),
     RPAREN(")", SEPARATOR_CAT),
     LBRACE("{", SEPARATOR_CAT),
@@ -43,7 +42,10 @@ public enum CoffeeScriptTokenId implements TokenId {
     COLON(":", OPERATOR_CAT),
     SEMI(";", OPERATOR_CAT),
     FIELD(null, FIELD_CAT),
-    NONUNARY_OP(null, OPERATOR_CAT);
+    NONUNARY_OP(null, OPERATOR_CAT),
+    DIV("/", OPERATOR_CAT),
+    INC("++", OPERATOR_CAT),
+    DEC("--", OPERATOR_CAT);
     //
     private final String fixedText;
     private final String primaryCategory;

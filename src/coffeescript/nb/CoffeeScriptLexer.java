@@ -1,8 +1,10 @@
 package coffeescript.nb;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.mozilla.nb.javascript.CompilerEnvirons;
 import org.mozilla.nb.javascript.ContextFactory;
 import org.mozilla.nb.javascript.ErrorReporter;
@@ -23,8 +25,20 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
 
     private Parser parser;
     private TokenStream tokenStream;
+    //
     private final static Set<String> COFFEE_KEYWORDS = new HashSet<String>(Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "'when"));
     private final static Set<String> COFFEE_ALIASES = new HashSet<String>(Arrays.asList("and", "or", "is", "isnt", "not", "yes", "no", "on", "off"));
+    private final static Set<CoffeeScriptTokenId> NOT_REGEX = EnumSet.of(NUMBER, REGEX, BOOL, INC, DEC, RBRACKET);
+    private final static Set<CoffeeScriptTokenId> NOT_SPACED_REGEX = EnumSet.of(RPAREN, RBRACE, THIS, IDENTIFIER, STRING);
+    //
+    private final static Pattern REGEX_MATCH = Pattern.compile("^\\/(?![\\s=])[^\\/\\n\\\\]*(?:(?:\\\\[\\s\\S]|\\[[^\\]\\n\\\\]*(?:\\\\[\\s\\S][^\\]\\n\\\\]*)*])[^\\/\\n\\\\]*)*\\/[imgy]{0,4}(?!\\w)");
+
+    static {
+        NOT_SPACED_REGEX.addAll(NOT_REGEX);
+    }
+    // 
+    private CoffeeScriptTokenId prevToken;
+    private boolean prevSpaced;
 
     public CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
         super(info.input(), info.tokenFactory());
@@ -63,7 +77,13 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         tokenStream = new TokenStream(parser, null, null, "", 0);
         parser.setTokenStream(tokenStream);
         tokenStream.setInput(info.input());
-        tokenStream.fromState(info.state());
+
+        if (info.state() != null) {
+            State state = (State) info.state();
+            tokenStream.fromState(state.getTokenStreamState());
+            prevToken = state.getPrevToken();
+            prevSpaced = state.isPrevSpaced();
+        }
 
         // Ensure that the parser instance is pointing to the same tokenstream instance
         // such that its error handler etc. is synchronized
@@ -74,10 +94,16 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     }
 
     public Object state() {
-        return tokenStream.toState();
+        return new State(tokenStream.toState(), prevToken, prevSpaced);
     }
 
     protected org.netbeans.api.lexer.Token<CoffeeScriptTokenId> token(CoffeeScriptTokenId id) {
+        if (id == WHITESPACE) {
+            prevSpaced = true;
+        } else {
+            prevToken = id;
+            prevSpaced = false;
+        }
         String fixedText = id.fixedText();
         return (fixedText != null) ? tokenFactory.getFlyweightToken(id, fixedText) : super.token(id);
     }
@@ -87,16 +113,16 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         switch (c) {
             case '"': {
                 if (inputMatch("\"\"")) {
-                    return balancedInterpolatedString("\"\"\"") ? token(STRING_LITERAL) : token(ERROR);
+                    return balancedInterpolatedString("\"\"\"") ? token(STRING) : token(ERROR);
                 } else {
-                    return balancedInterpolatedString("\"") ? token(STRING_LITERAL) : token(ERROR);
+                    return balancedInterpolatedString("\"") ? token(STRING) : token(ERROR);
                 }
             }
             case '\'': {
                 if (inputMatch("''")) {
-                    return balancedString("'''") ? token(SIMPLE_STRING_LITERAL) : token(ERROR);
+                    return balancedString("'''") ? token(SIMPLE_STRING) : token(ERROR);
                 } else {
-                    return balancedString("'") ? token(SIMPLE_STRING_LITERAL) : token(ERROR);
+                    return balancedString("'") ? token(SIMPLE_STRING) : token(ERROR);
                 }
             }
             case '/': {
@@ -115,17 +141,40 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                     } else {
                         return token(ERROR);
                     }
+                } else if (prevToken != null) {
+                    Set<CoffeeScriptTokenId> notRegex = prevSpaced ? NOT_REGEX : NOT_SPACED_REGEX;
+                    if (!notRegex.contains(prevToken)) {
+                        if (balancedRegex()) {
+                            while (true) {
+                                c = input.read();
+                                if (c == 'i' || c == 'm' || c == 'g' || c == 'y') {
+                                    continue;
+                                } else {
+                                    input.backup(1);
+                                    break;
+                                }
+                            }
+                            if (REGEX_MATCH.matcher(input.readText()).matches()) {
+                                return token(REGEX);
+                            }
+                        }
+                        input.backup(input.readLength() - 1);
+                    }
+
                 }
-                break;
+                if (inputMatch("=")) {
+                    return token(ANY_OPERATOR);
+                }
+                return token(DIV);
             }
             case '#': {
                 if (inputNotMatch("###") && inputMatch("##")) {
-                    return balancedString("###") ? token(BLOCK_COMMENT) : token(ERROR);
+                    return balancedString("###") ? token(COMMENT) : token(ERROR);
                 } else {
                     while (true) {
                         c = input.read();
                         if (c == '\n' || c == LexerInput.EOF) {
-                            return token(BLOCK_COMMENT);
+                            return token(COMMENT);
                         }
                     }
                 }
@@ -175,13 +224,12 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     private CoffeeScriptTokenId convertToken(int token) {
         switch (token) {
             case 65535: // SIGN ERRORS! Why does this happen?
-                return IDENTIFIER; // Dont show errors
+                return ERROR; // Dont show errors
             case Token.ERROR://          = -1, // well-known as the only code < EOF
                 return ERROR;
             case Token.LINE_COMMENT:
-                return LINE_COMMENT;
             case Token.BLOCK_COMMENT:
-                return BLOCK_COMMENT;
+                return COMMENT;
             case Token.NEW:
                 return NEW;
             case Token.DOT:
@@ -192,7 +240,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case Token.EOL://            = 1,  // end of line
                 return EOL;
             case Token.FUNCTION:
-                return ERROR;
+                return IDENTIFIER;
             case Token.THIS:
                 return THIS;
             case Token.FOR:
@@ -211,6 +259,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return BREAK;
             case Token.SWITCH:
                 return SWITCH;
+            case Token.TRUE:
+            case Token.FALSE:
+                return BOOL;
             case Token.DO:
             case Token.WITH:
             case Token.CATCH:
@@ -218,7 +269,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case Token.CONTINUE:
             case Token.DELPROP:
             case Token.EXPORT:
-            case Token.FALSE:
+
             case Token.FINALLY:
             case Token.IMPORT:
             case Token.IN:
@@ -227,7 +278,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case Token.RESERVED:
             case Token.RETURN:
             case Token.THROW:
-            case Token.TRUE:
+
             case Token.TRY:
             case Token.TYPEOF:
             case Token.UNDEFINED:
@@ -239,19 +290,19 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case Token.DEBUGGER:
                 return ANY_KEYWORD;
             case Token.NUMBER:
-                return FLOAT_LITERAL;
+                return NUMBER;
             case Token.STRING_BEGIN:
             case Token.STRING:
             case Token.STRING_END:
-                return STRING_LITERAL;
+                return STRING;
             case Token.DIV:
-                return NONUNARY_OP;
+                return DIV;
             case Token.ASSIGN_DIV:
                 return ANY_OPERATOR;
             case Token.REGEXP_BEGIN:
             case Token.REGEXP:
             case Token.REGEXP_END:
-                return REGEXP;
+                return REGEX;
             case Token.IFEQ://           = 6,
             case Token.IFNE://           = 7,
             case Token.BITOR://          = 9,
@@ -301,8 +352,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return IDENTIFIER;
             case Token.NEG://            = 29,
             case Token.INC://            = 102, // increment/decrement (++ --)
+                return INC;
             case Token.DEC://            = 103,
-                return ANY_OPERATOR;
+                return DEC;
             case Token.ARRAYLIT://       = 63, // array literal
             case Token.OBJECTLIT://      = 64, // object literal
                 // XXX What do I do about these?
@@ -323,6 +375,31 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return RPAREN;
             default:
                 return IDENTIFIER;
+        }
+    }
+
+    private static class State {
+
+        final Object tokenStreamState;
+        final CoffeeScriptTokenId prevToken;
+        final boolean prevSpaced;
+
+        public State(Object tokenStreamState, CoffeeScriptTokenId prevToken, boolean prevSpaced) {
+            this.tokenStreamState = tokenStreamState;
+            this.prevToken = prevToken;
+            this.prevSpaced = prevSpaced;
+        }
+
+        public Object getTokenStreamState() {
+            return tokenStreamState;
+        }
+
+        public CoffeeScriptTokenId getPrevToken() {
+            return prevToken;
+        }
+
+        public boolean isPrevSpaced() {
+            return prevSpaced;
         }
     }
 

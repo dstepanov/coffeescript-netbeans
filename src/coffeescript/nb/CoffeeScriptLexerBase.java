@@ -59,6 +59,26 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
         }
     }
 
+    protected boolean balancedRegex() {
+        Deque<Character> stack = new LinkedList<Character>();
+        while (true) {
+            int c = input.read();
+            if (stack.isEmpty() && c == '/') {
+                return true;
+            }
+            if (!stack.isEmpty() && stack.element() == c) {
+                stack.poll();
+            } else if (c == '[') {
+                stack.push(']');
+            } else if (stack.isEmpty() && c == '\\') {
+                // We don't need to escape things in square braces
+                c = input.read();
+            } else if (c == '\n' || c == LexerInput.EOF) {
+                return false;
+            }
+        }
+    }
+
     protected Token<T> token(T token) {
 //        System.out.println("TOKEN: " + token + " " + input.readText());
         return tokenFactory.createToken(token);
