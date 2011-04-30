@@ -1,38 +1,36 @@
 package coffeescript.nb;
 
 import org.netbeans.api.lexer.Token;
-import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
-import org.netbeans.spi.lexer.TokenFactory;
 
 /**
  *
  * @author Denis Stepanov
  */
-public class CoffeeScriptRegexpLexer implements Lexer<CoffeeScriptRegexpTokenId> {
+public class CoffeeScriptRegexpLexer extends CoffeeScriptLexerBase<CoffeeScriptRegexpTokenId> {
 
-    private LexerInput input;
-    private TokenFactory<CoffeeScriptRegexpTokenId> tokenFactory;
     private boolean inEmbedded;
 
     public CoffeeScriptRegexpLexer(LexerRestartInfo<CoffeeScriptRegexpTokenId> info) {
-        this.input = info.input();
-        this.tokenFactory = info.tokenFactory();
+        super(info.input(), info.tokenFactory());
+        inEmbedded = info.state() instanceof Boolean ? (Boolean) info.state() : false;
     }
 
     public Token<CoffeeScriptRegexpTokenId> nextToken() {
         if (inEmbedded) {
-            while (true) {
-                int c = input.read();
-                if ((c == LexerInput.EOF) || (c == '}')) {
+            try {
+                if (balancedInterpolatedString("}")) {
                     if (input.readLength() > 1) {
                         input.backup(1);
-                        return tokenFactory.createToken(CoffeeScriptRegexpTokenId.EMBEDDED);
-                    } else {
-                        break;
+                        return token(CoffeeScriptRegexpTokenId.EMBEDDED);
+                    } else if (input.readLength() == 0) {
+                        return null;
                     }
                 }
+                return token(CoffeeScriptRegexpTokenId.REGEXP);
+            } finally {
+                inEmbedded = false;
             }
         }
         while (true) {
@@ -40,21 +38,21 @@ public class CoffeeScriptRegexpLexer implements Lexer<CoffeeScriptRegexpTokenId>
             switch (ch) {
                 case LexerInput.EOF:
                     if (input.readLength() > 0) {
-                        return tokenFactory.createToken(CoffeeScriptRegexpTokenId.REGEXP);
+                        return token(CoffeeScriptRegexpTokenId.REGEXP);
                     } else {
                         return null;
                     }
                 case '#':
-                    if (input.read() == '{') {
+                    if (inputMatch("{")) {
                         inEmbedded = true;
-                        return tokenFactory.createToken(CoffeeScriptRegexpTokenId.REGEXP);
+                        return token(CoffeeScriptRegexpTokenId.REGEXP);
                     }
             }
         }
     }
 
     public Object state() {
-        return null;
+        return inEmbedded;
     }
 
     public void release() {

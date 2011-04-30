@@ -1,12 +1,8 @@
 package coffeescript.nb;
 
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
-import org.mozilla.javascript.Kit;
 import org.mozilla.nb.javascript.CompilerEnvirons;
 import org.mozilla.nb.javascript.ContextFactory;
 import org.mozilla.nb.javascript.ErrorReporter;
@@ -14,17 +10,15 @@ import org.mozilla.nb.javascript.EvaluatorException;
 import org.mozilla.nb.javascript.Parser;
 import org.mozilla.nb.javascript.Token;
 import org.mozilla.nb.javascript.TokenStream;
-import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
-import org.netbeans.spi.lexer.TokenFactory;
 import org.openide.ErrorManager;
 
 /**
  * 
  * @author Denis Stepanov
  */
-public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
+public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId> {
 
     public static final String COMMENT_CAT = "comment";
     public static final String KEYWORD_CAT = "keyword"; // NOI18N
@@ -37,17 +31,13 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
     public static final String NUMBER_CAT = "number"; // NOI18N
     public static final String IDENTIFIER_CAT = "identifier"; // NOI18N
     public static final String FIELD_CAT = "field"; // NOI18N
-    /** This is still not working; I wonder if release() is called correctly at all times...*/
-    private static final boolean REUSE_LEXERS = false;
-    private LexerInput input;
-    private TokenFactory<CoffeeScriptTokenId> tokenFactory;
     private Parser parser;
     private TokenStream tokenStream;
-    private static CoffeeScriptLexer cachedLexer;
     private final static Set<String> COFFEE_KEYWORDS = new HashSet<String>(Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "'when"));
     private final static Set<String> COFFEE_ALIASES = new HashSet<String>(Arrays.asList("and", "or", "is", "isnt", "not", "yes", "no", "on", "off"));
 
-    private CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
+    public CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
+        super(info.input(), info.tokenFactory());
         // TODO Use Rhino's scanner and TokenStream classes.
         // Unfortunately, they don't provide access... I'll need a hacked version of
         // Rhino!
@@ -85,29 +75,12 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
         // The parser is NOT used for parsing here, but the Rhino scanner
         // calls into the parser for error messages. So we register our own error
         // handler for the parser and pass it into the tokenizer to handle errors.
+
         parser = new Parser(compilerEnv, errorReporter);
-
         tokenStream = new TokenStream(parser, null, null, "", 0);
-    }
-
-    public static synchronized CoffeeScriptLexer create(LexerRestartInfo<CoffeeScriptTokenId> info) {
-        CoffeeScriptLexer lexer = cachedLexer;
-
-        if (lexer == null) {
-            lexer = new CoffeeScriptLexer(info);
-        }
-
-        lexer.restart(info);
-
-        return lexer;
-    }
-
-    void restart(LexerRestartInfo<CoffeeScriptTokenId> info) {
-        input = info.input();
-        tokenFactory = info.tokenFactory();
+        parser.setTokenStream(tokenStream);
         tokenStream.setInput(info.input());
-        Object state = info.state();
-        tokenStream.fromState(state);
+        tokenStream.fromState(info.state());
 
         // Ensure that the parser instance is pointing to the same tokenstream instance
         // such that its error handler etc. is synchronized
@@ -115,12 +88,6 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
     }
 
     public void release() {
-        if (REUSE_LEXERS) {
-            // Possibly reset the structures that could cause memory leaks
-            synchronized (CoffeeScriptLexer.class) {
-                cachedLexer = this;
-            }
-        }
     }
 
     public Object state() {
@@ -139,30 +106,30 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
             case '"': {
                 if (inputMatch("\"\"")) {
                     if (balancedInterpolatedString("\"\"\"")) {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.STRING_LITERAL);
+                        return token(CoffeeScriptTokenId.STRING_LITERAL);
                     } else {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                        return token(CoffeeScriptTokenId.ERROR);
                     }
                 } else {
                     if (balancedInterpolatedString("\"")) {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.STRING_LITERAL);
+                        return token(CoffeeScriptTokenId.STRING_LITERAL);
                     } else {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                        return token(CoffeeScriptTokenId.ERROR);
                     }
                 }
             }
             case '\'': {
                 if (inputMatch("''")) {
-                    if (balancedInterpolatedString("'''")) {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.STRING_LITERAL);
+                    if (balancedString("'''")) {
+                        return token(CoffeeScriptTokenId.SIMPLE_STRING_LITERAL);
                     } else {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                        return token(CoffeeScriptTokenId.ERROR);
                     }
                 } else {
                     if (balancedString("'")) {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.SIMPLE_STRING_LITERAL);
+                        return token(CoffeeScriptTokenId.SIMPLE_STRING_LITERAL);
                     } else {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                        return token(CoffeeScriptTokenId.ERROR);
                     }
                 }
             }
@@ -178,9 +145,9 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
                                 break;
                             }
                         }
-                        return tokenFactory.createToken(CoffeeScriptTokenId.HEREGEX);
+                        return token(CoffeeScriptTokenId.HEREGEX);
                     } else {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                        return token(CoffeeScriptTokenId.ERROR);
                     }
                 }
                 break;
@@ -188,15 +155,15 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
             case '#': {
                 if (inputNotMatch("###") && inputMatch("##")) {
                     if (balancedString("###")) {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.BLOCK_COMMENT);
+                        return token(CoffeeScriptTokenId.BLOCK_COMMENT);
                     } else {
-                        return tokenFactory.createToken(CoffeeScriptTokenId.ERROR);
+                        return token(CoffeeScriptTokenId.ERROR);
                     }
                 } else {
                     while (true) {
                         c = input.read();
                         if (c == '\n' || c == LexerInput.EOF) {
-                            return tokenFactory.createToken(CoffeeScriptTokenId.BLOCK_COMMENT);
+                            return token(CoffeeScriptTokenId.BLOCK_COMMENT);
                         }
                     }
                 }
@@ -226,50 +193,6 @@ public class CoffeeScriptLexer implements Lexer<CoffeeScriptTokenId> {
                 return false;
             }
         }
-    }
-
-    private boolean balancedInterpolatedString(String last) {
-        Deque<Character> stack = new LinkedList<Character>();
-        while (true) {
-            if (stack.isEmpty() && inputMatch(last)) {
-                return true;
-            }
-            int c = input.read();
-            if (!stack.isEmpty() && stack.element() == c) {
-                stack.poll();
-            } else if (c == '#' && inputMatch("{")) {
-                stack.push('}');
-            } else if (c == '\\') {
-                c = input.read();
-            } else if (c == LexerInput.EOF) {
-                return false;
-            }
-        }
-    }
-
-    private boolean inputNotMatch(String string) {
-        int readChars = 0;
-        for (char c : string.toCharArray()) {
-            readChars++;
-            if (input.read() != c) {
-                input.backup(readChars);
-                return true;
-            }
-        }
-        input.backup(readChars);
-        return false;
-    }
-
-    private boolean inputMatch(String string) {
-        int readChars = 0;
-        for (char c : string.toCharArray()) {
-            readChars++;
-            if (input.read() != c) {
-                input.backup(readChars);
-                return false;
-            }
-        }
-        return true;
     }
 
     private int readToken() {

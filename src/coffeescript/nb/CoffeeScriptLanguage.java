@@ -37,7 +37,7 @@ public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId>
 
     @Override
     protected Lexer<CoffeeScriptTokenId> createLexer(LexerRestartInfo<CoffeeScriptTokenId> lri) {
-        return CoffeeScriptLexer.create(lri);
+        return new CoffeeScriptLexer(lri);
     }
 
     @Override

@@ -1,59 +1,36 @@
 package coffeescript.nb;
 
-import java.util.Deque;
-import java.util.LinkedList;
 import org.netbeans.api.lexer.Token;
-import org.netbeans.spi.lexer.Lexer;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
-import org.netbeans.spi.lexer.TokenFactory;
 
 /**
  *
  * @author Denis Stepanov
  */
-public class CoffeeScriptStringLexer implements Lexer<CoffeeScriptStringTokenId> {
+public class CoffeeScriptStringLexer extends CoffeeScriptLexerBase<CoffeeScriptStringTokenId> {
 
-    private LexerInput input;
-    private TokenFactory<CoffeeScriptStringTokenId> tokenFactory;
     private boolean inEmbedded;
 
     public CoffeeScriptStringLexer(LexerRestartInfo<CoffeeScriptStringTokenId> info) {
-        this.input = info.input();
-        this.tokenFactory = info.tokenFactory();
+        super(info.input(), info.tokenFactory());
+        inEmbedded = info.state() instanceof Boolean ? (Boolean) info.state() : false;
     }
 
     public Token<CoffeeScriptStringTokenId> nextToken() {
         if (inEmbedded) {
-            Deque<Character> stack = new LinkedList<Character>();
-            stack.add('}');
-            int c = input.read();
-            while (true) {
-                if (stack.element() == c) {
-                    stack.poll();
-                    if (stack.isEmpty()) {
-                        if (input.readLength() > 1) {
-                            input.backup(1);
-                            return tokenFactory.createToken(CoffeeScriptStringTokenId.EMBEDDED);
-                        }
-                        break;
+            try {
+                if (balancedInterpolatedString("}")) {
+                    if (input.readLength() > 1) {
+                        input.backup(1);
+                        return token(CoffeeScriptStringTokenId.EMBEDDED);
+                    } else if (input.readLength() == 0) {
+                        return null;
                     }
-                } else if (c == '#') {
-                    c = input.read();
-                    if (c == '{') {
-                        stack.push('}');
-                    } else {
-                        continue;
-                    }
-                } else if (c == '\\') {
-                    c = input.read();
-                } else if (c == LexerInput.EOF) {
-                    if (input.readLength() > 0) {
-                        return tokenFactory.createToken(CoffeeScriptStringTokenId.STRING);
-                    }
-                    return null;
                 }
-                c = input.read();
+                return token(CoffeeScriptStringTokenId.STRING);
+            } finally {
+                inEmbedded = false;
             }
         }
         while (true) {
@@ -61,21 +38,24 @@ public class CoffeeScriptStringLexer implements Lexer<CoffeeScriptStringTokenId>
             switch (ch) {
                 case LexerInput.EOF:
                     if (input.readLength() > 0) {
-                        return tokenFactory.createToken(CoffeeScriptStringTokenId.STRING);
+                        return token(CoffeeScriptStringTokenId.STRING);
                     } else {
                         return null;
                     }
+                case '\\':
+                    input.read();
+                    break;
                 case '#':
-                    if (input.read() == '{') {
+                    if (inputMatch("{")) {
                         inEmbedded = true;
-                        return tokenFactory.createToken(CoffeeScriptStringTokenId.STRING);
+                        return token(CoffeeScriptStringTokenId.STRING);
                     }
             }
         }
     }
 
     public Object state() {
-        return null;
+        return inEmbedded;
     }
 
     public void release() {
