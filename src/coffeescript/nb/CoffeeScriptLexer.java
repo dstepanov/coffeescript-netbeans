@@ -179,6 +179,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                     }
                 }
             }
+            case '`': {
+                return balancedJSToken() ? token(JSTOKEN) : token(ERROR);
+            }
         }
         input.backup(1);
         int token = nextRhinoToken();

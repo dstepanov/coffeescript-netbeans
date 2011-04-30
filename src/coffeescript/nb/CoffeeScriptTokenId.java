@@ -17,6 +17,7 @@ public enum CoffeeScriptTokenId implements TokenId {
     NUMBER(null, NUMBER_CAT),
     STRING(null, STRING_CAT),
     SIMPLE_STRING(null, STRING_CAT),
+    JSTOKEN(null, STRING_CAT),
     BOOL(null, KEYWORD_CAT),
     WHITESPACE(null, WHITESPACE_CAT),
     EOL(null, WHITESPACE_CAT),

@@ -62,6 +62,9 @@ public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId>
         if (id == CoffeeScriptTokenId.HEREGEX) {
             return EmbeddingPresence.ALWAYS_QUERY;
         }
+        if (id == CoffeeScriptTokenId.JSTOKEN) {
+            return EmbeddingPresence.ALWAYS_QUERY;
+        }
         return null;
     }
 
@@ -72,6 +75,12 @@ public class CoffeeScriptLanguage extends LanguageHierarchy<CoffeeScriptTokenId>
         }
         if (token.id() == CoffeeScriptTokenId.HEREGEX) {
             return LanguageEmbedding.create(CoffeeScriptRegexpLanguage.getLanguage(), 0, 0);
+        }
+        if (token.id() == CoffeeScriptTokenId.JSTOKEN) {
+            Language<?> javasSriptLanguage = Language.find("text/javascript");
+            if (javasSriptLanguage != null && token.length() > 2) {
+                return LanguageEmbedding.create(javasSriptLanguage, 1, 1);
+            }
         }
         return null;
     }
