@@ -26,12 +26,13 @@ public class CoffeeScriptSyntaxErrorsHighlightingTask extends ParserResultTask<C
         if ((result != null) && (result.getCompilerResult() != null) && (result.getCompilerResult().getError() != null)) {
             CoffeeScriptCompiler.Error error = result.getCompilerResult().getError();
             int line = error.getLine() == -1 ? 0 : error.getLine();
-            
+
             if (!result.getSnapshot().getMimePath().getMimeType(0).equals(CoffeeScriptLanguage.MIME_TYPE)) {
-                line += NbDocument.findLineNumber((StyledDocument) result.getSnapshot().getSource().getDocument(true), result.getSnapshot().getOriginalOffset(0));
-                line -= 1;
+                StyledDocument doc = (StyledDocument) result.getSnapshot().getSource().getDocument(true);
+                int originalOffset = result.getSnapshot().getOriginalOffset(0);
+                line += NbDocument.findLineNumber(doc, originalOffset);
             }
-            
+
             String msg = error.getLine() == -1 ? error.getMessage() : error.getErrorName();
             ErrorDescription errorDescription = ErrorDescriptionFactory.createErrorDescription(Severity.ERROR, msg, document, line);
             HintsController.setErrors(document, CoffeeScriptLanguage.MIME_TYPE, Collections.singleton(errorDescription));
