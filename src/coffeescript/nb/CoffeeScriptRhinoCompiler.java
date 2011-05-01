@@ -1,5 +1,6 @@
 package coffeescript.nb;
 
+import coffeescript.nb.options.CoffeeScriptSettings;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -63,7 +64,9 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
             Scriptable scope = ctx.newObject(ctx.initStandardObjects());
             getScriptFromClasspath("coffeescript/nb/resources/coffee-script.js").exec(ctx, scope);
             scope.put("code", scope, code);
-            return (String) getScriptFromString("CoffeeScript.compile(code);").exec(ctx, scope);
+            String options = String.format("{bare: %b}", CoffeeScriptSettings.get().isBare());
+            String script = String.format("CoffeeScript.compile(code, %s);", options);
+            return (String) getScriptFromString(script).exec(ctx, scope);
 
         } finally {
             Context.exit();
