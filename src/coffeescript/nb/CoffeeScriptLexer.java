@@ -111,6 +111,8 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     public org.netbeans.api.lexer.Token<CoffeeScriptTokenId> nextToken() {
         int c = input.read();
         switch (c) {
+            case '\\':
+                return token(ANY_OPERATOR);
             case '"': {
                 if (inputMatch("\"\"")) {
                     return balancedInterpolatedString("\"\"\"") ? token(STRING) : token(ERROR);
