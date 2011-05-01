@@ -7,6 +7,15 @@
             <standalone/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>org.jdesktop.layout</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.16.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.mozilla.rhino.patched</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -34,6 +43,15 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.netbeans.modules.editor.settings</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.35.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.modules.html.lexer</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -49,6 +67,15 @@
                     <run-dependency>
                         <release-version>2</release-version>
                         <specification-version>1.38.1.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.netbeans.modules.options.api</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.21.1</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
