@@ -85,10 +85,10 @@
                 <file name="coffeescript-nb-CoffeeScriptParser$Factory.instance"/>
                 <file name="coffeescript-nb-CoffeeScriptSyntaxErrorsHighlightingTask$Factory.instance"/>
                 <file name="coffeescript-nb-CoffeeScriptAutocompileTask$Factory.instance"/>
-                <file name="language.instance">
+<!--                <file name="language.instance">
                     <attr name="instanceCreate" methodvalue="coffeescript.nb.CoffeeScriptLanguage.getLanguage"/>
                     <attr name="instanceOf" stringvalue="org.netbeans.api.lexer.Language"/>
-                </file>
+                </file>-->
                 <folder name="FontsColors">
                     <folder name="NetBeans">
                         <folder name="Defaults">
