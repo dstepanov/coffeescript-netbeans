@@ -11,12 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import org.netbeans.api.lexer.Language;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
+import org.netbeans.modules.parsing.spi.Parser;
 
 /**
  *
@@ -33,6 +33,11 @@ public class CoffeScriptLanguageRegistration extends DefaultLanguageConfig {
     @Override
     public Language getLexerLanguage() {
         return CoffeeScriptLanguage.getLanguage();
+    }
+
+    @Override
+    public Parser getParser() {
+        return new CoffeeScriptParser();
     }
 
     @Override

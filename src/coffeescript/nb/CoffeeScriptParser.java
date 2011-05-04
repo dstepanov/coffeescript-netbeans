@@ -11,20 +11,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.StyledDocument;
+import org.netbeans.modules.csl.api.Error;
+import org.netbeans.modules.csl.api.Severity;
+import org.netbeans.modules.csl.spi.DefaultError;
+import org.netbeans.modules.csl.spi.ParserResult;
 import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.parsing.api.Task;
 import org.netbeans.modules.parsing.spi.ParseException;
 import org.netbeans.modules.parsing.spi.Parser;
 import org.netbeans.modules.parsing.spi.ParserFactory;
 import org.netbeans.modules.parsing.spi.SourceModificationEvent;
+import org.openide.text.NbDocument;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -69,7 +76,7 @@ public class CoffeeScriptParser extends Parser {
         }
     }
 
-    public static class ParsingResult extends Result {
+    public static class ParsingResult extends ParserResult {
 
         private CoffeeScriptRhinoCompiler.CompilerResult compilerResult;
 
@@ -80,6 +87,25 @@ public class CoffeeScriptParser extends Parser {
 
         public CoffeeScriptCompiler.CompilerResult getCompilerResult() {
             return compilerResult;
+        }
+
+        @Override
+        public List<? extends Error> getDiagnostics() {
+            if ((compilerResult != null) && (compilerResult.getError() != null)) {
+                CoffeeScriptCompiler.Error error = compilerResult.getError();
+                int line = error.getLine() == -1 ? 0 : error.getLine();
+                String msg = error.getLine() == -1 ? error.getMessage() : error.getErrorName();
+                StyledDocument doc = (StyledDocument) getSnapshot().getSource().getDocument(true);
+                if (!getSnapshot().getMimePath().getMimeType(0).equals(CoffeeScriptLanguage.MIME_TYPE)) {
+                    int originalOffset = getSnapshot().getOriginalOffset(0);
+                    line += NbDocument.findLineNumber(doc, originalOffset);
+                }
+                int offsetError = getSnapshot().getEmbeddedOffset(NbDocument.findLineOffset(doc, line - 1));
+                return Collections.singletonList(DefaultError.createDefaultError(
+                        "cs.key", msg, "", getSnapshot().getSource().getFileObject(),
+                        offsetError, -1, true, Severity.ERROR));
+            }
+            return Collections.emptyList();
         }
 
         protected void invalidate() {
