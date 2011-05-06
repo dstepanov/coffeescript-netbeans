@@ -1,7 +1,8 @@
-CoffeeScript editor fro NetBeans IDE
+CoffeeScript support for NetBeans IDE
 ---------------------
 
 http://netbeans.org/
+
                               )         )
                              (     (     )   (
                             (     (     (     )
@@ -23,15 +24,15 @@ http://netbeans.org/
 ### FEATURES:
 
 * Just works! 
-    (No need for additional dependencies)
+   * (No need for Node.js)
 
 * Advanced syntax highlighting 
 
 * Error checking by background compilation
-    (Rhino JavaScript engine is used to compile *.coffee files)
+    * (Rhino JavaScript engine is used to compile *.coffee files)
 
 * Autocompiling to a JavaScript file in the same directory
-    (Test it in a web browser right away)
+    * (Test it in a web browser right away)
 
 ### INSTRUCTIONS:
 
