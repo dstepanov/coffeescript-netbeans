@@ -42,6 +42,8 @@ Plugin requires NetBeans 7.0
 
 ### SCREENSHOT:
 
+![screenshot2](https://github.com/dstepanov/coffeescript-netbeans/raw/master/screenshot2.png)
+* * *
 ![screenshot](https://github.com/dstepanov/coffeescript-netbeans/raw/master/screenshot.png)
 
 ### LICENSE:
