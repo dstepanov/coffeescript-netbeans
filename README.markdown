@@ -1,4 +1,4 @@
-CoffeeScript editor fro NetBeans IDE
+CoffeeScript support for NetBeans IDE
 ---------------------
 
 http://netbeans.org/
