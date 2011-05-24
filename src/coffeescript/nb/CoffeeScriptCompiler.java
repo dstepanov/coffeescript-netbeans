@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 /**
@@ -20,7 +19,7 @@ package coffeescript.nb;
  */
 public interface CoffeeScriptCompiler {
 
-    public CompilerResult compile(String code);
+    public CompilerResult compile(String code, boolean bare);
 
     public static class CompilerResult {
 

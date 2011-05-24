@@ -48,7 +48,7 @@ public class CoffeeScriptParser extends Parser {
 
             public ParsingResult call() throws Exception {
                 CharSequence text = snapshot.getText();
-                CoffeeScriptRhinoCompiler.CompilerResult compilerResult = CoffeeScriptRhinoCompiler.get().compile(text.toString());
+                CoffeeScriptRhinoCompiler.CompilerResult compilerResult = CoffeeScriptRhinoCompiler.get().compile(text.toString(), true);
                 return new ParsingResult(snapshot, compilerResult);
             }
         });

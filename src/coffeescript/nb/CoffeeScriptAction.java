@@ -11,10 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import coffeescript.nb.CoffeeScriptCompiler.CompilerResult;
+import coffeescript.nb.options.CoffeeScriptSettings;
 import java.awt.event.ActionEvent;
 import java.util.Collection;
 import java.util.concurrent.Future;
@@ -99,7 +99,7 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
                         }
                         RequestProcessor processor = RequestProcessor.getDefault();
                         final Future[] futureHolder = new Future[1];
-                        futureHolder[0] = processor.submit(new CompilerTask(data) {
+                        futureHolder[0] = processor.submit(new CompilerTask(data, CoffeeScriptSettings.get().isBare()) {
 
                             public void run() {
                                 try {
@@ -129,7 +129,8 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
             }
             menu.add(switchmenu);
             menu.addSeparator();
-            menu.add(new CompileAction(data));
+            menu.add(new CompileAction(data, false));
+            menu.add(new CompileAction(data, true));
             return menu;
         }
 
@@ -140,14 +141,16 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
     private static class CompileAction extends AbstractAction {
 
         Collection<? extends CoffeeScriptDataObject> data;
+        boolean bare;
 
-        public CompileAction(Collection<? extends CoffeeScriptDataObject> data) {
-            super("Compile");
+        public CompileAction(Collection<? extends CoffeeScriptDataObject> data, boolean bare) {
+            super(bare ? "Compile without the top-level function" : "Compile");
             this.data = data;
+            this.bare = bare;
         }
 
         public void actionPerformed(ActionEvent ae) {
-            new ConsoleOutputCompileTask(data).execute();
+            new ConsoleOutputCompileTask(data, bare).execute();
         }
     }
 
@@ -174,8 +177,8 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
         private ExecutorTask executorTask;
         private InputOutput io;
 
-        public ConsoleOutputCompileTask(Collection<? extends CoffeeScriptDataObject> data) {
-            super(data);
+        public ConsoleOutputCompileTask(Collection<? extends CoffeeScriptDataObject> data, boolean bare) {
+            super(data, bare);
             this.cancelAction = new CancelAction(this);
             this.io = IOProvider.getDefault().getIO(getName(), new Action[]{cancelAction});
         }
@@ -217,9 +220,11 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
 
         private Collection<? extends CoffeeScriptDataObject> data;
         private String taskName;
+        private boolean bare;
 
-        public CompilerTask(Collection<? extends CoffeeScriptDataObject> data) {
+        public CompilerTask(Collection<? extends CoffeeScriptDataObject> data, boolean bare) {
             this.data = data;
+            this.bare = bare;
             taskName = data.size() > 1 ? "Compiling CoffeeScript files" : "Compiling " + data.iterator().next().getPrimaryFile().getNameExt();
         }
 
@@ -229,7 +234,7 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
                 ProgressHandle handle = handle = ProgressHandleFactory.createHandle("Compiling " + dataObject.getPrimaryFile().getNameExt(), this);
                 try {
                     handle.start();
-                    CoffeeScriptRhinoCompiler.CompilerResult result = CoffeeScriptRhinoCompiler.get().compile(dataObject.getPrimaryFile().asText());
+                    CoffeeScriptRhinoCompiler.CompilerResult result = CoffeeScriptRhinoCompiler.get().compile(dataObject.getPrimaryFile().asText(), bare);
                     if (result == null) {
                         return; // Canceled
                     }

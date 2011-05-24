@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import coffeescript.nb.options.CoffeeScriptSettings;
@@ -49,9 +48,9 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
         return INSTANCE;
     }
 
-    public CompilerResult compile(String code) {
+    public CompilerResult compile(String code, boolean bare) {
         try {
-            return new CompilerResult(compileCode(code));
+            return new CompilerResult(compileCode(code, bare));
         } catch (StoppedContextException e) {
             return null; // Canceled
         } catch (JavaScriptException e) {
@@ -69,7 +68,7 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
         }
     }
 
-    private String compileCode(String code) {
+    private String compileCode(String code, boolean bare) {
         Context.enter();
         Context ctx = new StoppableContext();
         try {
@@ -78,7 +77,7 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
             Scriptable scope = ctx.newObject(ctx.initStandardObjects());
             getScriptFromClasspath("coffeescript/nb/resources/coffee-script.js").exec(ctx, scope);
             scope.put("code", scope, code);
-            String options = String.format("{bare: %b}", CoffeeScriptSettings.get().isBare());
+            String options = String.format("{bare: %b}", bare);
             String script = String.format("CoffeeScript.compile(code, %s);", options);
             return (String) getScriptFromString(script).exec(ctx, scope);
 
