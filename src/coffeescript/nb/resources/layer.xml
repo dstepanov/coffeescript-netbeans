@@ -74,8 +74,11 @@
         </folder>
     </folder>
     <folder name="Editors">
-        <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance"/>
+<!--        <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance"/>-->
         <folder name="text">
+            <folder name="html">
+                <file name="coffeescript-nb-CoffeeScriptHTMLParserTask$Factory.instance"/>
+            </folder>
             <folder name="coffeescript">
                 <attr name="SystemFileSystem.localizingBundle" stringvalue="coffeescript.nb.resources.Bundle"/>
                 <file name="language.instance">
