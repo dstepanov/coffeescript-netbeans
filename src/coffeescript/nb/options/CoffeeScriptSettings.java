@@ -40,7 +40,7 @@ public class CoffeeScriptSettings {
     }
 
     public boolean isBare() {
-        return getPreferences().getBoolean("bare", false);
+        return getPreferences().getBoolean("bare", true);
     }
 
     public void setBare(boolean bare) {
