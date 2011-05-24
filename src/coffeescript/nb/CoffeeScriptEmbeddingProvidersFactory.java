@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import java.util.ArrayList;
@@ -30,20 +29,11 @@ import org.netbeans.modules.parsing.spi.SchedulerTask;
 import org.netbeans.modules.parsing.spi.TaskFactory;
 
 /**
- * Doesn't work because of http://netbeans.org/bugzilla/show_bug.cgi?id=162990 ???
  * @author Denis Stepanov
  */
 public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
 
     public Collection<? extends SchedulerTask> create(Snapshot snapshot) {
-        if (!snapshot.getSource().getMimeType().equals("text/xhtml")) {
-            if (snapshot.getMimeType().equals("text/html") && snapshot.getMimePath().size() > 1) { //NOI18N
-                return null;
-            }
-        }
-        if (snapshot.getMimeType().equals("text/html") && snapshot.getMimePath().size() > 1) { //NOI18N
-            return null;
-        }
         List<SchedulerTask> ems = new ArrayList<SchedulerTask>();
         if (snapshot.getSource().getMimeType().equals("text/html")) {
             ems.add(new HTMLEmbeddingProvider());
@@ -59,12 +49,12 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
         @Override
         public List<Embedding> getEmbeddings(Snapshot snapshot) {
             List<Embedding> embeddings = new ArrayList<Embedding>();
-            TokenHierarchy<CharSequence> th = TokenHierarchy.create(snapshot.getText(), HTMLTokenId.language());
+            TokenHierarchy<?> th = snapshot.getTokenHierarchy();
             TokenSequence<? extends TokenId> tokenSequence = th.tokenSequence(HTMLTokenId.language());
             if (tokenSequence != null) {
                 @SuppressWarnings("unchecked")
                 TokenSequence<? extends HTMLTokenId> htmlTokenSequence = (TokenSequence<? extends HTMLTokenId>) tokenSequence;
-                extractJavaScriptFromHtml(snapshot, htmlTokenSequence, embeddings);
+                extractCoffeeScriptFromHTML(snapshot, htmlTokenSequence, embeddings);
             }
             if (embeddings.isEmpty()) {
                 return Collections.<Embedding>emptyList();
@@ -95,12 +85,12 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
             List<Embedding> embeddings = new ArrayList<Embedding>();
             while (tokenSequence.moveNext()) {
                 Token<? extends TokenId> token = tokenSequence.token();
-                if (token.id().name().equals("T_INLINE_HTML")) { // NOI18N
+                if (token.id().name().equals("T_INLINE_HTML")) {
                     TokenSequence<? extends HTMLTokenId> ts = tokenSequence.embeddedJoined(HTMLTokenId.language());
                     if (ts == null) {
                         continue;
                     }
-                    extractJavaScriptFromHtml(snapshot, ts, embeddings);
+                    extractCoffeeScriptFromHTML(snapshot, ts, embeddings);
                     break;
                 }
             }
@@ -117,34 +107,13 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
         }
     }
 
-    private void extractJavaScriptFromHtml(Snapshot snapshot, TokenSequence<? extends HTMLTokenId> ts, List<Embedding> embeddings) {
+    private void extractCoffeeScriptFromHTML(Snapshot snapshot, TokenSequence<? extends HTMLTokenId> ts, List<Embedding> embeddings) {
         boolean inCoffeeScript = false;
         ts.moveStart();
         while (ts.moveNext()) {
             Token<? extends HTMLTokenId> htmlToken = ts.token();
             HTMLTokenId htmlId = htmlToken.id();
-            if (htmlId == HTMLTokenId.SCRIPT) {
-                int sourceStart = ts.offset();
-                String text = htmlToken.text().toString();
-                // Make sure it doesn't start with <!--, if it does, remove it
-                // (this is a mechanism used in files to gracefully handle older browsers)
-                int start = 0;
-                for (; start < text.length(); start++) {
-                    char c = text.charAt(start);
-                    if (!Character.isWhitespace(c)) {
-                        break;
-                    }
-                }
-                if (start < text.length() && text.startsWith("<!--", start)) {
-                    int lineEnd = text.indexOf('\n', start);
-                    if (lineEnd != -1) {
-                        lineEnd++; //skip the \n
-                        sourceStart += lineEnd;
-                        text = text.substring(lineEnd);
-                    }
-                }
-//                embeddings.add(snapshot.create(sourceStart, text.length(), CoffeeScriptLanguage.MIME_TYPE));
-            } else if (htmlId == HTMLTokenId.TAG_OPEN) {
+            if (htmlId == HTMLTokenId.TAG_OPEN) {
                 String text = htmlToken.text().toString();
                 if ("script".equals(text)) {
                     TokenSequence<? extends HTMLTokenId> ets = ts.subSequence(ts.offset());
@@ -187,7 +156,6 @@ public final class CoffeeScriptEmbeddingProvidersFactory extends TaskFactory {
             } else if (inCoffeeScript && htmlId == HTMLTokenId.TEXT) {
                 embeddings.add(snapshot.create(ts.offset(), htmlToken.length(), CoffeeScriptLanguage.MIME_TYPE));
             } else if (htmlId == HTMLTokenId.TAG_CLOSE && "script".equals(htmlToken.toString())) {
-//                    embeddings.add(snapshot.create("\n", CoffeeScriptLanguage.MIME_TYPE));
                 inCoffeeScript = false;
             } else {
             }

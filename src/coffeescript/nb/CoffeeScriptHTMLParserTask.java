@@ -36,11 +36,23 @@ public class CoffeeScriptHTMLParserTask extends ParserResultTask<Result> {
 
     @Override
     public void run(Result result, SchedulerEvent event) {
-        TokenHierarchy<Document> th = TokenHierarchy.get(result.getSnapshot().getSource().getDocument(true));
-        extractCoffeeScriptFromHtml(th.tokenSequence(HTMLTokenId.language()));
+        Snapshot snapshot = result.getSnapshot();
+        TokenHierarchy<Document> th = TokenHierarchy.get(snapshot.getSource().getDocument(true));
+        if (snapshot.getMimeType().equals("text/html")) {
+            TokenSequence<HTMLTokenId> ts = th.tokenSequence(HTMLTokenId.language());
+            if (ts == null) {
+                TokenSequence<?> ets = th.tokenSequence();
+                ets.moveStart();
+                ets.moveNext();
+                ts = ets.embeddedJoined(HTMLTokenId.language());
+            }
+            if (ts != null) {
+                extractCoffeeScriptFromHTML(ts);
+            }
+        }
     }
 
-    private void extractCoffeeScriptFromHtml(TokenSequence<? extends HTMLTokenId> ts) {
+    private void extractCoffeeScriptFromHTML(TokenSequence<? extends HTMLTokenId> ts) {
         boolean inCoffeeScript = false;
         ts.moveStart();
         while (ts.moveNext()) {
@@ -88,8 +100,6 @@ public class CoffeeScriptHTMLParserTask extends ParserResultTask<Result> {
                 }
             } else if (inCoffeeScript && htmlId == HTMLTokenId.TEXT) {
                 ts.createEmbedding(CoffeeScriptLanguage.getLanguage(), 0, 0);
-                System.out.println("*** " + ts.token().text());
-//                    embeddings.add(snapshot.create("\n", CoffeeScriptLanguage.MIME_TYPE));
                 inCoffeeScript = false;
             }
         }

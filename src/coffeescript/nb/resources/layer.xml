@@ -74,7 +74,7 @@
         </folder>
     </folder>
     <folder name="Editors">
-<!--        <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance"/>-->
+        <file name="coffeescript-nb-CoffeeScriptEmbeddingProvidersFactory.instance"/>
         <folder name="text">
             <folder name="html">
                 <file name="coffeescript-nb-CoffeeScriptHTMLParserTask$Factory.instance"/>
