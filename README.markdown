@@ -3,24 +3,6 @@ CoffeeScript support for NetBeans IDE
 
 http://netbeans.org/
 
-                              )         )
-                             (     (     )   (
-                            (     (     (     )
-                             )   (      )     )
-                            (     )    (     (
-                                    )        )
-                        ___________________________
-                       |                            ~\
-                       |                          |\  \
-                       |                          | )  )
-                       |                          |/  /
-                       |                             /
-                        \                         /~~
-                         \                       /
-                          \____________________ /
-                ________________________________________
-                \______________________________________/
-
 ### FEATURES:
 
 * Just works! 
@@ -34,9 +16,12 @@ http://netbeans.org/
 * Autocompiling to a JavaScript file in the same directory
     * (Test it in a web browser right away)
 
+* Syntax highlighting and error checking in scripts 
+    * (HTML and PHP files)
+
 ### INSTRUCTIONS:
 
-Download coffeescript-nb.nbm and add it using NetBeans plugin manager
+[Download](https://github.com/downloads/dstepanov/coffeescript-netbeans/coffeescript-nb.nbm) coffeescript-nb.nbm and add it using NetBeans plugin manager
 
 Plugin requires NetBeans 7.0
 
