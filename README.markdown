@@ -21,7 +21,7 @@ http://netbeans.org/
 
 ### INSTRUCTIONS:
 
-[Download](https://github.com/downloads/dstepanov/coffeescript-netbeans/coffeescript-nb.nbm) coffeescript-nb.nbm and add it using NetBeans plugin manager
+Download [coffeescript-nb.nbm](https://github.com/downloads/dstepanov/coffeescript-netbeans/coffeescript-nb.nbm) and add it using NetBeans plugin manager
 
 Plugin requires NetBeans 7.0
 
