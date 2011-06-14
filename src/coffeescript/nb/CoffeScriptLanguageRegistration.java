@@ -14,6 +14,7 @@
 package coffeescript.nb;
 
 import org.netbeans.api.lexer.Language;
+import org.netbeans.modules.csl.api.Formatter;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
@@ -38,6 +39,16 @@ public class CoffeScriptLanguageRegistration extends DefaultLanguageConfig {
     @Override
     public Parser getParser() {
         return new CoffeeScriptParser();
+    }
+
+    @Override
+    public boolean hasFormatter() {
+        return true;
+    }
+
+    @Override
+    public Formatter getFormatter() {
+        return new CoffeeScriptFormatter();
     }
 
     @Override
