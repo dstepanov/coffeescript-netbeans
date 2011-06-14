@@ -31,7 +31,7 @@ import org.openide.util.Exceptions;
  * @author Denis Stepanov
  */
 public class CoffeeScriptFormatter implements Formatter {
-
+    
     public void reformat(Context context, ParserResult compilationInfo) {
         TokenHierarchy<CoffeeScriptTokenId> th = createTokenHierarchy(context);
         TokenSequence<CoffeeScriptTokenId> ts = th.tokenSequence(CoffeeScriptLanguage.getLanguage());
@@ -41,6 +41,9 @@ public class CoffeeScriptFormatter implements Formatter {
             int currentLineStartOffset = 0;
             while (ts.moveNext()) {
                 Token<CoffeeScriptTokenId> token = ts.token();
+                if (token.id() == CoffeeScriptTokenId.WHITESPACE || token.id() == CoffeeScriptTokenId.EOL) {
+                    continue;
+                }
                 int tokenOffset = token.offset(th);
                 if (tokenOffset >= 0) {
                     int tokenLineStartOffset = context.lineStartOffset(tokenOffset);
@@ -74,12 +77,12 @@ public class CoffeeScriptFormatter implements Formatter {
             Exceptions.printStackTrace(ble);
         }
     }
-
+    
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected TokenHierarchy<CoffeeScriptTokenId> createTokenHierarchy(Context context) {
         return (TokenHierarchy) TokenHierarchy.get(context.document());
     }
-
+    
     public void reindent(Context context) {
         try {
             int currentLineStartOffset = context.lineStartOffset(context.startOffset());
@@ -94,59 +97,59 @@ public class CoffeeScriptFormatter implements Formatter {
             Exceptions.printStackTrace(ble);
         }
     }
-
+    
     public boolean needsParserResult() {
         return false;
     }
-
+    
     public int indentSize() {
         return -1;
     }
-
+    
     public int hangingIndentSize() {
         return -1;
     }
-
+    
     private static class Indent {
-
+        
         private final int indent, indents;
-
+        
         public Indent(int indent, int indents) {
             this.indent = indent;
             this.indents = indents;
         }
-
+        
         public int getIndent() {
             return indent;
         }
-
+        
         public int getIndents() {
             return indents;
         }
     }
-
+    
     private static class IndentChange implements Comparable<IndentChange> {
-
+        
         private final int offset;
         private int indent;
-
+        
         public IndentChange(int offset, int indent) {
             this.offset = offset;
             this.indent = indent;
         }
-
+        
         public int getIndent() {
             return indent < 0 ? 0 : indent;
         }
-
+        
         public void setIndent(int indent) {
             this.indent = indent;
         }
-
+        
         public int getOffset() {
             return offset;
         }
-
+        
         public int compareTo(IndentChange t) {
             return Integer.valueOf(offset).compareTo(t.offset);
         }
