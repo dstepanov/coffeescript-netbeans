@@ -13,9 +13,17 @@
 // limitations under the License.
 package coffeescript.nb;
 
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.TreeSet;
 import javax.swing.text.BadLocationException;
+import org.netbeans.api.lexer.Token;
+import org.netbeans.api.lexer.TokenHierarchy;
+import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.modules.csl.api.Formatter;
 import org.netbeans.modules.csl.spi.ParserResult;
+import org.netbeans.modules.editor.indent.api.IndentUtils;
 import org.netbeans.modules.editor.indent.spi.Context;
 import org.openide.util.Exceptions;
 
@@ -25,6 +33,51 @@ import org.openide.util.Exceptions;
 public class CoffeeScriptFormatter implements Formatter {
 
     public void reformat(Context context, ParserResult compilationInfo) {
+        TokenHierarchy<CoffeeScriptTokenId> th = createTokenHierarchy(context);
+        TokenSequence<CoffeeScriptTokenId> ts = th.tokenSequence(CoffeeScriptLanguage.getLanguage());
+        Collection<IndentChange> indentChanges = new TreeSet<IndentChange>();
+        Deque<Indent> indents = new LinkedList<Indent>();
+        try {
+            int currentLineStartOffset = 0;
+            while (ts.moveNext()) {
+                Token<CoffeeScriptTokenId> token = ts.token();
+                int tokenOffset = token.offset(th);
+                if (tokenOffset >= 0) {
+                    int tokenLineStartOffset = context.lineStartOffset(tokenOffset);
+                    if (currentLineStartOffset != tokenLineStartOffset) {
+                        currentLineStartOffset = tokenLineStartOffset;
+                        int tokenLineIndent = context.lineIndent(tokenLineStartOffset);
+                        while (!indents.isEmpty() && (indents.peek().getIndent() >= tokenLineIndent)) {
+                            indents.pop();
+                        }
+                        int lineIndents = indents.isEmpty() ? 0 : indents.peek().getIndents();
+                        int lineIndent = indents.isEmpty() ? 0 : indents.peek().getIndent();
+                        if (lineIndent < tokenLineIndent) {
+                            lineIndents++;
+                        } else if (lineIndent > tokenLineIndent) {
+                            lineIndents--;
+                        }
+                        indents.push(new Indent(tokenLineIndent, lineIndents));
+                        indentChanges.add(new IndentChange(tokenLineStartOffset, IndentUtils.indentLevelSize(context.document()) * (lineIndents < 0 ? 0 : lineIndents)));
+                    }
+                }
+            }
+            int offsetChange = 0;
+            for (IndentChange indentChange : indentChanges) {
+                int indentOffsetChange = indentChange.getIndent() - context.lineIndent(offsetChange + indentChange.getOffset());
+                if (indentOffsetChange != 0) {
+                    context.modifyIndent(offsetChange + indentChange.getOffset(), indentChange.getIndent());
+                    offsetChange += indentOffsetChange;
+                }
+            }
+        } catch (BadLocationException ble) {
+            Exceptions.printStackTrace(ble);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected TokenHierarchy<CoffeeScriptTokenId> createTokenHierarchy(Context context) {
+        return (TokenHierarchy) TokenHierarchy.get(context.document());
     }
 
     public void reindent(Context context) {
@@ -40,7 +93,6 @@ public class CoffeeScriptFormatter implements Formatter {
         } catch (BadLocationException ble) {
             Exceptions.printStackTrace(ble);
         }
-
     }
 
     public boolean needsParserResult() {
@@ -53,5 +105,50 @@ public class CoffeeScriptFormatter implements Formatter {
 
     public int hangingIndentSize() {
         return -1;
+    }
+
+    private static class Indent {
+
+        private final int indent, indents;
+
+        public Indent(int indent, int indents) {
+            this.indent = indent;
+            this.indents = indents;
+        }
+
+        public int getIndent() {
+            return indent;
+        }
+
+        public int getIndents() {
+            return indents;
+        }
+    }
+
+    private static class IndentChange implements Comparable<IndentChange> {
+
+        private final int offset;
+        private int indent;
+
+        public IndentChange(int offset, int indent) {
+            this.offset = offset;
+            this.indent = indent;
+        }
+
+        public int getIndent() {
+            return indent < 0 ? 0 : indent;
+        }
+
+        public void setIndent(int indent) {
+            this.indent = indent;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+
+        public int compareTo(IndentChange t) {
+            return Integer.valueOf(offset).compareTo(t.offset);
+        }
     }
 }
