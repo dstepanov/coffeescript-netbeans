@@ -120,6 +120,23 @@
         </folder>
     </folder>
     <folder name="OptionsDialog">
+        <folder name="Editor">
+            <folder name="Formatting">
+                <attr name="position" intvalue="0"/>
+                <folder name="text">
+                    <folder name="coffeescript">
+                        <file name="TabsAndIndents.instance">
+                            <attr name="instanceOf" methodvalue="org.netbeans.modules.options.editor.spi.PreferencesCustomizer$Factory"/>
+                            <attr name="instanceCreate" methodvalue="org.netbeans.modules.options.editor.spi.CustomizerFactories.createDefaultTabsAndIndentsCustomizerFactory"/>
+                            <attr name="previewTextFile" stringvalue="CoffeeScriptPreview.coffee"/>
+                            <attr name="position" intvalue="100"/>
+                       </file>
+                    </folder>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
+    <folder name="OptionsDialog">
         <folder name="PreviewExamples">
             <folder name="text">
                 <file name="coffeescript" url="CoffeeScriptPreview.coffee"/>
