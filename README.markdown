@@ -19,6 +19,20 @@ http://netbeans.org/
 * Syntax highlighting and error checking in scripts 
     * (HTML and PHP files)
 
+* Indentation & formatting
+
+### VERSION HISTORY:
+
+* 0.9.1
+
+  Added the support for indentation & formatting
+
+* 0.9
+  
+  CoffeeScript updated to v1.1.1
+
+  Added syntax highlighting and error checking in scripts (HTML, PHP)
+
 ### INSTRUCTIONS:
 
 [Download](https://github.com/downloads/dstepanov/coffeescript-netbeans/coffeescript-nb.nbm) coffeescript-nb.nbm and add it using NetBeans plugin manager
