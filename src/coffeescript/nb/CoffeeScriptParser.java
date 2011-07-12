@@ -13,6 +13,7 @@
 // limitations under the License.
 package coffeescript.nb;
 
+import coffeescript.nb.options.CoffeeScriptSettings;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +49,7 @@ public class CoffeeScriptParser extends Parser {
 
             public ParsingResult call() throws Exception {
                 CharSequence text = snapshot.getText();
-                CoffeeScriptRhinoCompiler.CompilerResult compilerResult = CoffeeScriptRhinoCompiler.get().compile(text.toString(), true);
+                CoffeeScriptRhinoCompiler.CompilerResult compilerResult = CoffeeScriptRhinoCompiler.get().compile(text.toString(), CoffeeScriptSettings.get().isBare());
                 return new ParsingResult(snapshot, compilerResult);
             }
         });
