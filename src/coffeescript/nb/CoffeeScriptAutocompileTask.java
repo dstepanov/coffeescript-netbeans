@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import java.io.OutputStream;
@@ -46,9 +45,14 @@ public class CoffeeScriptAutocompileTask extends ParserResultTask<CoffeeScriptPa
                 }
                 if (!file.asText().equals(js)) {
                     OutputStream out = file.getOutputStream();
-                    out.write(js.getBytes());
-                    out.flush();
-                    out.close();
+                    try {
+                        out.write(js.getBytes());
+                        out.flush();
+                    } finally {
+                        if (out != null) {
+                            out.close();
+                        }
+                    }
                 }
             } catch (Exception e) {
                 Exceptions.printStackTrace(e);

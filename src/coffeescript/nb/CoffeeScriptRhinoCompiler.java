@@ -13,7 +13,6 @@
 // limitations under the License.
 package coffeescript.nb;
 
-import coffeescript.nb.options.CoffeeScriptSettings;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
