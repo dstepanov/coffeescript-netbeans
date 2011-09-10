@@ -23,15 +23,23 @@ http://netbeans.org/
 
 ### VERSION HISTORY:
 
+* 0.9.2
+
+  * CoffeeScript updated to v1.1.2
+
+  * Rhino updated to 1.7R3
+
+  * Bugfixes
+
 * 0.9.1
 
-  Added the support for indentation & formatting
+  * Added the support for indentation & formatting
 
 * 0.9
   
-  CoffeeScript updated to v1.1.1
+  * CoffeeScript updated to v1.1.1
 
-  Added syntax highlighting and error checking in scripts (HTML, PHP)
+  * Added syntax highlighting and error checking in scripts (HTML, PHP)
 
 ### INSTRUCTIONS:
 
