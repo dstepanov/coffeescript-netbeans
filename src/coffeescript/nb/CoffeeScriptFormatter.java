@@ -40,7 +40,7 @@ public class CoffeeScriptFormatter implements Formatter {
         try {
             int currentLineStartOffset = 0;
             while (ts.moveNext()) {
-                Token<CoffeeScriptTokenId> token = ts.token();
+                Token<CoffeeScriptTokenId> token = ts.offsetToken();
                 if (token.id() == CoffeeScriptTokenId.WHITESPACE || token.id() == CoffeeScriptTokenId.EOL) {
                     continue;
                 }
