@@ -16,6 +16,7 @@ package coffeescript.nb;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
+import org.netbeans.api.queries.FileEncodingQuery;
 import org.netbeans.modules.parsing.api.Snapshot;
 import org.netbeans.modules.parsing.spi.ParserResultTask;
 import org.netbeans.modules.parsing.spi.Scheduler;
@@ -46,7 +47,7 @@ public class CoffeeScriptAutocompileTask extends ParserResultTask<CoffeeScriptPa
                 if (!file.asText().equals(js)) {
                     OutputStream out = file.getOutputStream();
                     try {
-                        out.write(js.getBytes());
+                        out.write(js.getBytes(FileEncodingQuery.getEncoding(coffeeFile)));
                         out.flush();
                     } finally {
                         if (out != null) {
