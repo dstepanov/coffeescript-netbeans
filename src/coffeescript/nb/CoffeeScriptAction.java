@@ -234,7 +234,7 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
                 ProgressHandle handle = handle = ProgressHandleFactory.createHandle("Compiling " + dataObject.getPrimaryFile().getNameExt(), this);
                 try {
                     handle.start();
-                    CoffeeScriptRhinoCompiler.CompilerResult result = CoffeeScriptRhinoCompiler.get().compile(dataObject.getPrimaryFile().asText(), bare);
+                    CoffeeScriptCompiler.CompilerResult result = CoffeeScriptSettings.getCompiler().compile(dataObject.getPrimaryFile().asText(), bare);
                     if (result == null) {
                         return; // Canceled
                     }

@@ -13,6 +13,8 @@
 // limitations under the License.
 package coffeescript.nb;
 
+import coffeescript.nb.options.CoffeeScriptSettings;
+
 /**
  *
  * @author Denis Stepanov

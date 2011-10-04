@@ -13,13 +13,142 @@
 // limitations under the License.
 package coffeescript.nb;
 
+import coffeescript.nb.options.CoffeeScriptSettings;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.openide.util.Exceptions;
+import org.openide.util.Utilities;
+
 /**
  *
  * @author Denis Stepanov
  */
 public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
 
+    private static CoffeeScriptNodeJSCompiler INSTANCE;
+    private static final Logger logger = Logger.getLogger(CoffeeScriptNodeJSCompiler.class.getName());
+
+    private CoffeeScriptNodeJSCompiler() {
+    }
+
+    public static synchronized CoffeeScriptNodeJSCompiler get() {
+        if (INSTANCE == null) {
+            return (INSTANCE = new CoffeeScriptNodeJSCompiler());
+        }
+        return INSTANCE;
+    }
+
+    public boolean isValid(String exec) {
+        File execFile = new File(exec);
+        if (!execFile.exists() || !execFile.isFile() || !execFile.canRead()) {
+            return false;
+        }
+
+        ProcessBuilder pb = Utilities.isWindows()
+                ? createValidateProcessBuilderWindows(exec)
+                : createValidateProcessBuilderUnix(exec);
+        try {
+            Process p = pb.start();
+
+            String err = getInputStreamAsString(p.getErrorStream());
+            String out = getInputStreamAsString(p.getInputStream());
+
+            p.destroy();
+
+            if (!err.isEmpty()) {
+                logger.log(Level.INFO, "Invalid exec\n{0}", err);
+                return false;
+            }
+            if (!out.startsWith("CoffeeScript")) {
+                logger.log(Level.INFO, "Not a coffee script ''coffee'', invalid output:\n{0}", out);
+            }
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.INFO, "Invalid exec", e);
+        }
+        return false;
+    }
+
     public CompilerResult compile(String code, boolean bare) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        String exec = CoffeeScriptSettings.get().getCompilerExec();
+        ProcessBuilder pb = Utilities.isWindows()
+                ? createCompileProcessBuilderWindows(exec, bare)
+                : createCompileProcessBuilderUnix(exec, bare);
+        try {
+            Process p = pb.start();
+
+            OutputStream os = p.getOutputStream();
+            os.write(code.getBytes("UTF-8"));
+            os.close();
+
+            String out = getInputStreamAsString(p.getInputStream());
+            String err = getInputStreamAsString(p.getErrorStream());
+
+            p.destroy();
+
+            if (!err.isEmpty()) {
+                int i = err.indexOf('\n');
+                if (i != -1) {
+                    err = err.substring(0, i);
+                }
+                Pattern pattern = Pattern.compile("(.*) on line (\\d*)(.*)");
+                Matcher matcher = pattern.matcher(err);
+                if (matcher.matches()) {
+                    return new CompilerResult(new Error(Integer.valueOf(matcher.group(2)), matcher.group(1) + matcher.group(3), err));
+                }
+                return new CompilerResult(new Error(-1, "", err));
+            }
+            return new CompilerResult(out);
+        } catch (Exception e) {
+            Exceptions.printStackTrace(e);
+        }
+        return null;
+    }
+
+    protected String getInputStreamAsString(InputStream is) {
+        char[] buffer = new char[1024];
+        Writer writer = new StringWriter();
+        try {
+            Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            int n;
+            while ((n = reader.read(buffer)) != -1) {
+                writer.write(buffer, 0, n);
+            }
+        } catch (IOException e) {
+            Exceptions.printStackTrace(e);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+            }
+        }
+        return writer.toString();
+    }
+
+    protected ProcessBuilder createValidateProcessBuilderWindows(String exec) {
+        return new ProcessBuilder("cmd", "/c", exec + " -v");
+    }
+
+    protected ProcessBuilder createValidateProcessBuilderUnix(String exec) {
+        return new ProcessBuilder("/bin/bash", "-l", "-c", exec + " -v");
+    }
+
+    protected ProcessBuilder createCompileProcessBuilderWindows(String exec, boolean bare) {
+        return new ProcessBuilder("cmd", "/c", exec + (bare ? " -scb" : " -sc"));
+    }
+
+    protected ProcessBuilder createCompileProcessBuilderUnix(String exec, boolean bare) {
+        return new ProcessBuilder("/bin/bash", "-l", "-c", exec + (bare ? " -scb" : " -sc"));
     }
 }

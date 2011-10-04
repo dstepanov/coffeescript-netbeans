@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb.options;
 
 import java.beans.PropertyChangeListener;
@@ -68,7 +67,7 @@ public class CoffeeScriptOptionsPanelController extends OptionsPanelController {
 
     @Override
     public boolean isValid() {
-        return true;
+        return getComponent().isSettingsValid();
     }
 
     @Override
@@ -86,10 +85,13 @@ public class CoffeeScriptOptionsPanelController extends OptionsPanelController {
             changed = true;
             propertySupport.firePropertyChange(OptionsPanelController.PROP_CHANGED, false, true);
         }
+    }
+
+    void valid() {
         propertySupport.firePropertyChange(OptionsPanelController.PROP_VALID, null, null);
     }
 
-    private synchronized JPanel getComponent() {
+    private synchronized CoffeeScriptOptionsPanel getComponent() {
         if (panel == null) {
             panel = new CoffeeScriptOptionsPanel(this);
         }

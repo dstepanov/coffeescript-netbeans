@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb.options;
 
+import coffeescript.nb.CoffeeScriptCompiler;
+import coffeescript.nb.CoffeeScriptNodeJSCompiler;
+import coffeescript.nb.CoffeeScriptRhinoCompiler;
 import java.util.prefs.Preferences;
 import org.openide.util.NbPreferences;
 
@@ -45,5 +47,51 @@ public class CoffeeScriptSettings {
 
     public void setBare(boolean bare) {
         getPreferences().put("bare", Boolean.toString(bare));
+    }
+
+    public CompilerType getCompilerType() {
+        return CompilerType.valueOf(getPreferences().get("compilerType", CompilerType.RHINO.name()));
+    }
+
+    public void setCompilerType(CompilerType compilerType) {
+        getPreferences().put("compilerType", compilerType.name());
+    }
+
+    public String getCompilerExec() {
+        return getPreferences().get("compilerExec", "");
+    }
+
+    public void setCompilerExec(String compilerExec) {
+        getPreferences().put("compilerExec", compilerExec);
+    }
+
+    public static CoffeeScriptCompiler getCompiler() {
+        switch (CoffeeScriptSettings.get().getCompilerType()) {
+            case NODEJS:
+                return CoffeeScriptNodeJSCompiler.get();
+            case RHINO:
+                return CoffeeScriptRhinoCompiler.get();
+        }
+        return null;
+    }
+
+    public enum CompilerType {
+
+        RHINO("Rhino (JavaScript for Java)"),
+        NODEJS("CoffeeScript (Node.js)");
+        private final String label;
+
+        private CompilerType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 }

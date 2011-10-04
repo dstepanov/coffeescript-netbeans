@@ -49,7 +49,7 @@ public class CoffeeScriptParser extends Parser {
 
             public ParsingResult call() throws Exception {
                 CharSequence text = snapshot.getText();
-                CoffeeScriptRhinoCompiler.CompilerResult compilerResult = CoffeeScriptRhinoCompiler.get().compile(text.toString(), CoffeeScriptSettings.get().isBare());
+                CoffeeScriptCompiler.CompilerResult compilerResult = CoffeeScriptSettings.getCompiler().compile(text.toString(), CoffeeScriptSettings.get().isBare());
                 return new ParsingResult(snapshot, compilerResult);
             }
         });
