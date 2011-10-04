@@ -21,7 +21,15 @@ http://netbeans.org/
 
 * Indentation & formatting
 
+* You can install Node.js with [coffee](http://jashkenas.github.com/coffee-script/#installation) command for compiling (Mac, Linux only) 
+
 ### VERSION HISTORY:
+
+* 0.9.4
+    
+  * Support for node.js and coffee command compiling (Mac, Linux only)
+
+  * Bugfixes
 
 * 0.9.3
 
