@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenSequence;
 import org.netbeans.editor.BaseDocument;
@@ -43,22 +44,35 @@ public class CoffeeScriptStructureScanner implements StructureScanner {
             return Collections.emptyMap();
         }
         try {
-            
-            /*
-            
-            TokenHierarchy<CoffeeScriptTokenId> th = (TokenHierarchy<CoffeeScriptTokenId>) pr.getSnapshot().getTokenHierarchy();;
-            TokenSequence<CoffeeScriptTokenId> ts = th.tokenSequence(CoffeeScriptLanguage.getLanguage());
-            while (ts.moveNext()) {
-            // TODO: read tokens to find fold ranges
-            }
-            
-            */
-            
             Map<String, List<OffsetRange>> folds = new HashMap<String, List<OffsetRange>>();
-            List<OffsetRange> ranges = new ArrayList<OffsetRange>();
             BaseDocument document = (BaseDocument) pr.getSnapshot().getSource().getDocument(true);
-            ranges.add(new OffsetRange(Utilities.getRowStart(document, 50), Utilities.getRowEnd(document, 200)));
-            folds.put("codeblocks", ranges);
+            TokenHierarchy<CoffeeScriptTokenId> th = (TokenHierarchy<CoffeeScriptTokenId>) pr.getSnapshot().getTokenHierarchy();
+            TokenSequence<CoffeeScriptTokenId> ts = th.tokenSequence(CoffeeScriptLanguage.getLanguage());
+            List<OffsetRange> ranges = new ArrayList<OffsetRange>();
+            while (ts.moveNext()) {
+                Token<CoffeeScriptTokenId> token = ts.token();
+                switch (token.id()) {
+                    case COMMENT:
+                        int start = token.offset(th);
+                        int end = start + token.length() - 1;
+                        while (ts.moveNext()) {
+                            switch (ts.token().id()) {
+                                case COMMENT:
+                                    end = ts.token().offset(th) + ts.token().length() - 1;
+                                    continue;
+                                case WHITESPACE:
+                                    continue;
+                            }
+                            ts.movePrevious();
+                            break;
+                        }
+                        if (Utilities.getRowCount(document, start, end) > 1) {
+                            ranges.add(new OffsetRange(Utilities.getRowStart(document, start), Utilities.getRowEnd(document, end)));
+                        }
+                        break;
+                }
+            }
+            folds.put("comments", ranges);
             return folds;
         } catch (Exception e) {
             Exceptions.printStackTrace(e);
