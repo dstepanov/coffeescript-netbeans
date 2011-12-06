@@ -15,6 +15,7 @@ package coffeescript.nb;
 
 import org.netbeans.api.lexer.Language;
 import org.netbeans.modules.csl.api.Formatter;
+import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
 import org.netbeans.modules.parsing.spi.Parser;
@@ -54,5 +55,15 @@ public class CoffeScriptLanguageRegistration extends DefaultLanguageConfig {
     @Override
     public String getDisplayName() {
         return "CoffeeScript";
+    }
+
+    @Override
+    public StructureScanner getStructureScanner() {
+        return new CoffeeScriptStructureScanner();
+    }
+
+    @Override
+    public boolean hasStructureScanner() {
+        return true;
     }
 }
