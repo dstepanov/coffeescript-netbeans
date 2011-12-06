@@ -13,11 +13,14 @@
 // limitations under the License.
 package coffeescript.nb;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.text.BadLocationException;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenHierarchy;
 import org.netbeans.api.lexer.TokenSequence;
@@ -49,30 +52,40 @@ public class CoffeeScriptStructureScanner implements StructureScanner {
             TokenHierarchy<CoffeeScriptTokenId> th = (TokenHierarchy<CoffeeScriptTokenId>) pr.getSnapshot().getTokenHierarchy();
             TokenSequence<CoffeeScriptTokenId> ts = th.tokenSequence(CoffeeScriptLanguage.getLanguage());
             List<OffsetRange> ranges = new ArrayList<OffsetRange>();
+            Deque<IdentRegion> indents = new ArrayDeque<IdentRegion>();
             while (ts.moveNext()) {
                 Token<CoffeeScriptTokenId> token = ts.token();
                 switch (token.id()) {
-                    case COMMENT:
-                        int start = token.offset(th);
-                        int end = start + token.length() - 1;
-                        while (ts.moveNext()) {
-                            switch (ts.token().id()) {
-                                case COMMENT:
-                                    end = ts.token().offset(th) + ts.token().length() - 1;
-                                    continue;
-                                case WHITESPACE:
-                                    continue;
-                            }
-                            ts.movePrevious();
-                            break;
-                        }
-                        if (Utilities.getRowCount(document, start, end) > 1) {
-                            ranges.add(new OffsetRange(Utilities.getRowStart(document, start), Utilities.getRowEnd(document, end)));
-                        }
+//                    case COMMENT:
+//                        TokenSequence<CoffeeScriptTokenId> commentTS = ts.subSequence(ts.offset());
+//                        int start = token.offset(th);
+//                        int end = start + token.length();
+//                        while (commentTS.moveNext()) {
+//                            Token<CoffeeScriptTokenId> commentNextToken = commentTS.token();
+//                            if (commentNextToken.id() == CoffeeScriptTokenId.COMMENT) {
+//                                end = commentNextToken.offset(th) + commentNextToken.length();
+//                                continue;
+//                            }
+//                            if (commentNextToken.id().getCategory() == CoffeeScriptTokenId.Category.WHITESPACE_CAT) {
+//                                continue;
+//                            }
+//                            break;
+//                        }
+//                        addIndent(document, ranges, start, end);
+//                        break;
+                    case INDENT:
+                        Integer indent = (Integer) token.getProperty("indent");
+                        indents.push(new IdentRegion(token.offset(th), indent));
+                        break;
+                    case OUTDENT:
+                        Integer outdent = (Integer) token.getProperty("indent");
+                        int to = token.offset(th) + token.length();
+                        addIndent(document, ranges, indents, outdent, to);
                         break;
                 }
             }
-            folds.put("comments", ranges);
+            addIndent(document, ranges, indents, -1, document.getLength());
+            folds.put("codeblocks", ranges);
             return folds;
         } catch (Exception e) {
             Exceptions.printStackTrace(e);
@@ -80,7 +93,33 @@ public class CoffeeScriptStructureScanner implements StructureScanner {
         return Collections.emptyMap();
     }
 
+    private void addIndent(BaseDocument document, List<OffsetRange> ranges, Deque<IdentRegion> indents, Integer outdent, int end) throws BadLocationException {
+        while (!indents.isEmpty() && (indents.peek().indent > outdent)) {
+            IdentRegion identRegion = indents.pop();
+            int from = Utilities.getFirstNonWhiteFwd(document, identRegion.start);
+            int to = Utilities.getFirstNonWhiteBwd(document, end) + 1;
+            addIndent(document, ranges, from, to);
+        }
+    }
+
+    private void addIndent(BaseDocument document, List<OffsetRange> ranges, int start, int end) throws BadLocationException {
+        if (Utilities.getRowCount(document, start, end) > 1) {
+            ranges.add(new OffsetRange(start, end));
+        }
+    }
+
     public Configuration getConfiguration() {
         return new Configuration(false, false);
+    }
+
+    private static class IdentRegion {
+
+        int start;
+        int indent;
+
+        public IdentRegion(int start, int indent) {
+            this.start = start;
+            this.indent = indent;
+        }
     }
 }

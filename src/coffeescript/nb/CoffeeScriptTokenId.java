@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import org.netbeans.api.lexer.TokenId;
@@ -34,6 +33,8 @@ public enum CoffeeScriptTokenId implements TokenId {
     JSTOKEN(null, STRING_CAT),
     BOOL(null, KEYWORD_CAT),
     WHITESPACE(null, WHITESPACE_CAT),
+    INDENT(null, WHITESPACE_CAT),
+    OUTDENT(null, WHITESPACE_CAT),
     EOL(null, WHITESPACE_CAT),
     COMMENT(null, COMMENT_CAT),
     LPAREN("(", SEPARATOR_CAT),
@@ -76,6 +77,10 @@ public enum CoffeeScriptTokenId implements TokenId {
 
     public String primaryCategory() {
         return category.getName();
+    }
+
+    public Category getCategory() {
+        return category;
     }
 
     public static enum Category {

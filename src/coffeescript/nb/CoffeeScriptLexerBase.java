@@ -11,11 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import org.netbeans.api.lexer.Token;
 import org.netbeans.api.lexer.TokenId;
 import org.netbeans.spi.lexer.Lexer;
@@ -51,7 +50,7 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
     }
 
     protected boolean balancedInterpolatedString(String last) {
-        Deque<Character> stack = new LinkedList<Character>();
+        Deque<Character> stack = new ArrayDeque<Character>();
         while (true) {
             if (stack.isEmpty() && inputMatch(last)) {
                 return true;
@@ -74,7 +73,7 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
     }
 
     protected boolean balancedRegex() {
-        Deque<Character> stack = new LinkedList<Character>();
+        Deque<Character> stack = new ArrayDeque<Character>();
         while (true) {
             int c = input.read();
             if (stack.isEmpty() && c == '/') {
@@ -87,14 +86,17 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
             } else if (stack.isEmpty() && c == '\\') {
                 // We don't need to escape things in square braces
                 c = input.read();
-            } else if (c == '\n' || c == LexerInput.EOF) {
+            } else if (c == '\n') {
+                input.backup(1);
+                return false;
+            } else if (c == LexerInput.EOF) {
                 return false;
             }
         }
     }
 
     protected boolean balancedJSToken() {
-        Deque<Character> stack = new LinkedList<Character>();
+        Deque<Character> stack = new ArrayDeque<Character>();
         while (true) {
             int c = input.read();
             if (stack.isEmpty() && c == '`') {

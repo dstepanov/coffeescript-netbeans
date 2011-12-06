@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package coffeescript.nb;
 
 import java.util.Arrays;
@@ -28,6 +27,7 @@ import org.mozilla.nb.javascript.Token;
 import org.mozilla.nb.javascript.TokenStream;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
+import org.netbeans.spi.lexer.TokenPropertyProvider;
 import org.openide.ErrorManager;
 import static coffeescript.nb.CoffeeScriptTokenId.*;
 
@@ -53,6 +53,8 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     // 
     private CoffeeScriptTokenId prevToken;
     private boolean prevSpaced;
+    private boolean newLine;
+    private int indent;
 
     public CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
         super(info.input(), info.tokenFactory());
@@ -97,6 +99,8 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             tokenStream.fromState(state.getTokenStreamState());
             prevToken = state.getPrevToken();
             prevSpaced = state.isPrevSpaced();
+            newLine = state.isNewLine();
+            indent = state.getIndent();
         }
 
         // Ensure that the parser instance is pointing to the same tokenstream instance
@@ -108,7 +112,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     }
 
     public Object state() {
-        return new State(tokenStream.toState(), prevToken, prevSpaced);
+        return new State(tokenStream.toState(), prevToken, prevSpaced, newLine, indent);
     }
 
     protected org.netbeans.api.lexer.Token<CoffeeScriptTokenId> token(CoffeeScriptTokenId id) {
@@ -118,12 +122,42 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             prevToken = id;
             prevSpaced = false;
         }
+
+        switch (id) {
+            case INDENT:
+                return tokenFactory.createPropertyToken(id, input.readLength(), new IndentTokenProperty(indent));
+            case OUTDENT:
+                return tokenFactory.createPropertyToken(id, input.readLength(), new IndentTokenProperty(indent));
+        }
+
         String fixedText = id.fixedText();
         return (fixedText != null) ? tokenFactory.getFlyweightToken(id, fixedText) : super.token(id);
     }
 
     public org.netbeans.api.lexer.Token<CoffeeScriptTokenId> nextToken() {
-        int c = input.read();
+        int c;
+        int lineAt = -1;
+        while (true) {
+            c = input.read();
+            if (c == -1) {
+                if (input.readLength() > 0) {
+                    input.backup(1);
+                    return indentToken(0);
+                }
+                return null;
+            } else if (c == '\n') {
+                lineAt = input.readLength();
+            } else if (!isSpaceCharacter(c)) {
+                if (input.readLength() > 1) {
+                    input.backup(1);
+                    if (lineAt == -1) {
+                        return token(WHITESPACE);
+                    }
+                    return indentToken(input.readLength() - lineAt);
+                }
+                break;
+            }
+        }
         switch (c) {
             case '\\':
                 return token(ANY_OPERATOR);
@@ -189,7 +223,11 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 } else {
                     while (true) {
                         c = input.read();
-                        if (c == '\n' || c == LexerInput.EOF) {
+                        if (c == '\n') {
+                            input.backup(1);
+                            return token(COMMENT);
+                        }
+                        if (c == LexerInput.EOF) {
                             return token(COMMENT);
                         }
                     }
@@ -208,6 +246,17 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             }
         }
         return token(tokenType);
+    }
+
+    private org.netbeans.api.lexer.Token<CoffeeScriptTokenId> indentToken(int lineIndent) {
+        if (lineIndent < indent) {
+            indent = lineIndent;
+            return token(OUTDENT);
+        } else if (lineIndent > indent) {
+            indent = lineIndent;
+            return token(INDENT);
+        }
+        return token(WHITESPACE);
     }
 
     private int nextRhinoToken() {
@@ -397,16 +446,28 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         }
     }
 
+    private boolean isSpaceCharacter(int c) {
+        if (c <= 127) {
+            return c == 0x20 || c == 0x9 || c == 0xC || c == 0xB;
+        } else {
+            return c == 0xA0 || Character.getType((char) c) == Character.SPACE_SEPARATOR;
+        }
+    }
+
     private static class State {
 
         final Object tokenStreamState;
         final CoffeeScriptTokenId prevToken;
         final boolean prevSpaced;
+        boolean newLine;
+        int indent;
 
-        public State(Object tokenStreamState, CoffeeScriptTokenId prevToken, boolean prevSpaced) {
+        public State(Object tokenStreamState, CoffeeScriptTokenId prevToken, boolean prevSpaced, boolean newLine, int indent) {
             this.tokenStreamState = tokenStreamState;
             this.prevToken = prevToken;
             this.prevSpaced = prevSpaced;
+            this.newLine = newLine;
+            this.indent = indent;
         }
 
         public Object getTokenStreamState() {
@@ -420,12 +481,36 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         public boolean isPrevSpaced() {
             return prevSpaced;
         }
+
+        public boolean isNewLine() {
+            return newLine;
+        }
+
+        public int getIndent() {
+            return indent;
+        }
     }
 
     private static final class RhinoContext extends org.mozilla.nb.javascript.Context {
 
         public RhinoContext() {
             super(ContextFactory.getGlobal());
+        }
+    }
+
+    private static class IndentTokenProperty implements TokenPropertyProvider<CoffeeScriptTokenId> {
+
+        private final int indent;
+
+        public IndentTokenProperty(int indent) {
+            this.indent = indent;
+        }
+
+        public Object getValue(org.netbeans.api.lexer.Token<CoffeeScriptTokenId> token, Object key) {
+            if ("indent".equals(key)) {
+                return indent;
+            }
+            return null;
         }
     }
 }
