@@ -19,11 +19,17 @@ http://netbeans.org/
 * Syntax highlighting and error checking in scripts 
     * (HTML and PHP files)
 
-* Indentation & formatting
+* Indentation & formatting, code folding
 
 * You can install Node.js with [coffee](http://jashkenas.github.com/coffee-script/#installation) command for compiling (Mac, Linux only) 
 
 ### VERSION HISTORY:
+
+* 0.9.5
+    
+  * Code folding
+
+  * Bugfixes
 
 * 0.9.4
     
