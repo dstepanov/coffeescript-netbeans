@@ -99,7 +99,6 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             tokenStream.fromState(state.getTokenStreamState());
             prevToken = state.getPrevToken();
             prevSpaced = state.isPrevSpaced();
-            newLine = state.isNewLine();
             indent = state.getIndent();
         }
 
@@ -112,7 +111,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     }
 
     public Object state() {
-        return new State(tokenStream.toState(), prevToken, prevSpaced, newLine, indent);
+        return new State(tokenStream.toState(), prevToken, prevSpaced, indent);
     }
 
     protected org.netbeans.api.lexer.Token<CoffeeScriptTokenId> token(CoffeeScriptTokenId id) {
@@ -276,6 +275,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             return ANY_KEYWORD;
         }
         if (COFFEE_ALIASES.contains(text)) {
+            return ANY_KEYWORD;
+        }
+        if("own".equals(text) && prevToken == CoffeeScriptTokenId.FOR){
             return ANY_KEYWORD;
         }
         if (text.equals("@")) {
@@ -459,14 +461,12 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         final Object tokenStreamState;
         final CoffeeScriptTokenId prevToken;
         final boolean prevSpaced;
-        boolean newLine;
         int indent;
 
-        public State(Object tokenStreamState, CoffeeScriptTokenId prevToken, boolean prevSpaced, boolean newLine, int indent) {
+        public State(Object tokenStreamState, CoffeeScriptTokenId prevToken, boolean prevSpaced, int indent) {
             this.tokenStreamState = tokenStreamState;
             this.prevToken = prevToken;
             this.prevSpaced = prevSpaced;
-            this.newLine = newLine;
             this.indent = indent;
         }
 
@@ -480,10 +480,6 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
 
         public boolean isPrevSpaced() {
             return prevSpaced;
-        }
-
-        public boolean isNewLine() {
-            return newLine;
         }
 
         public int getIndent() {
