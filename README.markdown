@@ -25,6 +25,10 @@ http://netbeans.org/
 
 ### VERSION HISTORY:
 
+* 0.9.6
+    
+  * CoffeeScript updated to v1.2.0
+
 * 0.9.5
     
   * Code folding
