@@ -36,6 +36,7 @@ import org.openide.util.Utilities;
  */
 public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
 
+    private static Pattern ERROR_PATTERN = Pattern.compile("(.*) on line (\\d*)(.*)");
     private static CoffeeScriptNodeJSCompiler INSTANCE;
     private static final Logger logger = Logger.getLogger(CoffeeScriptNodeJSCompiler.class.getName());
 
@@ -49,23 +50,28 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
         return INSTANCE;
     }
 
-    public boolean isValid(String exec) {
-        File execFile = new File(exec);
+    private boolean isValidFile(String file) {
+        File execFile = new File(file);
         if (!execFile.exists() || !execFile.isFile() || !execFile.canRead()) {
+            if (Utilities.isWindows() && file.toLowerCase().contains("%appdata%")) {
+                return true; // Allow to check file with appdata
+            }
             return false;
         }
+        return true;
+    }
 
-        ProcessBuilder pb = Utilities.isWindows()
-                ? createValidateProcessBuilderWindows(exec)
-                : createValidateProcessBuilderUnix(exec);
+    public boolean isValid(String exec) {
+        if (!isValidFile(exec)) {
+            return false;
+        }
         try {
-            Process p = pb.start();
-
-            String err = getInputStreamAsString(p.getErrorStream());
-            String out = getInputStreamAsString(p.getInputStream());
-
-            p.destroy();
-
+            ExecResult result = exec(
+                    Utilities.isWindows()
+                    ? createValidateProcessBuilderWindows(exec)
+                    : createValidateProcessBuilderNix(exec));
+            String err = result.err;
+            String out = result.out;
             if (!err.isEmpty()) {
                 logger.log(Level.INFO, "Invalid exec\n{0}", err);
                 return false;
@@ -80,30 +86,101 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
         return false;
     }
 
-    public CompilerResult compile(String code, boolean bare) {
-        String exec = CoffeeScriptSettings.get().getCompilerExec();
-        ProcessBuilder pb = Utilities.isWindows()
-                ? createCompileProcessBuilderWindows(exec, bare)
-                : createCompileProcessBuilderUnix(exec, bare);
-        try {
-            Process p = pb.start();
+    private ExecResult exec(ProcessBuilder pb) throws Exception {
+        return exec(null, pb);
+    }
 
+    private ExecResult exec(String output, ProcessBuilder pb) throws Exception {
+        return Utilities.isWindows() ? execWindows(output, pb) : execNix(output, pb);
+    }
+
+    private ExecResult execNix(final String output, ProcessBuilder pb) throws Exception {
+        Process p = pb.start();
+        if (output != null) {
             OutputStream os = p.getOutputStream();
-            os.write(code.getBytes("UTF-8"));
+            os.write(output.getBytes("UTF-8"));
             os.close();
+        }
 
-            String out = getInputStreamAsString(p.getInputStream());
-            String err = getInputStreamAsString(p.getErrorStream());
+        String out = getInputStreamAsString(p.getInputStream());
+        String err = getInputStreamAsString(p.getErrorStream());
 
-            p.destroy();
+        p.destroy();
 
+        ExecResult result = new ExecResult();
+        result.err = err;
+        result.out = out;
+        return result;
+    }
+
+    private ExecResult execWindows(final String output, ProcessBuilder pb) throws Exception {
+
+        final String[] errHolder = new String[1];
+        final String[] outHolder = new String[1];
+
+        final Process p = pb.start();
+
+        final InputStream errStream = p.getErrorStream();
+        final InputStream inputStream = p.getInputStream();
+
+        Thread outThread = new Thread(new Runnable() {
+
+            public void run() {
+                if (output != null) {
+                    try {
+                        OutputStream os = p.getOutputStream();
+                        os.write(output.getBytes("UTF-8"));
+                        os.close();
+                    } catch (Exception e) {
+                        Exceptions.printStackTrace(e);
+                    }
+                }
+            }
+        });
+        Thread errThread = new Thread(new Runnable() {
+
+            public void run() {
+                errHolder[0] = getInputStreamAsString(errStream);
+
+            }
+        });
+        Thread inputThread = new Thread(new Runnable() {
+
+            public void run() {
+                outHolder[0] = getInputStreamAsString(inputStream);
+            }
+        });
+
+        errThread.start();
+        inputThread.start();
+        outThread.start();
+        p.waitFor();
+        errThread.join();
+        inputThread.join();
+        outThread.join();
+        p.destroy();
+
+        ExecResult result = new ExecResult();
+        result.err = errHolder[0];
+        result.out = outHolder[0];
+        return result;
+    }
+
+    public CompilerResult compile(final String code, boolean bare) {
+        try {
+            String exec = CoffeeScriptSettings.get().getCompilerExec();
+            ExecResult result = exec(code,
+                    Utilities.isWindows()
+                    ? createCompileProcessBuilderWindows(exec, bare)
+                    : createCompileProcessBuilderNix(exec, bare));
+            String err = result.err;
+            String out = result.out;
             if (!err.isEmpty()) {
                 int i = err.indexOf('\n');
                 if (i != -1) {
                     err = err.substring(0, i);
                 }
-                Pattern pattern = Pattern.compile("(.*) on line (\\d*)(.*)");
-                Matcher matcher = pattern.matcher(err);
+                Matcher matcher = ERROR_PATTERN.matcher(err);
                 if (matcher.matches()) {
                     return new CompilerResult(new Error(Integer.valueOf(matcher.group(2)), matcher.group(1) + matcher.group(3), err));
                 }
@@ -137,18 +214,23 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
     }
 
     protected ProcessBuilder createValidateProcessBuilderWindows(String exec) {
-        return new ProcessBuilder("cmd", "/c", exec + " -v");
+        return new ProcessBuilder("cmd", "/c", "\"\"" + exec + "\"" + " -v \"");
     }
 
-    protected ProcessBuilder createValidateProcessBuilderUnix(String exec) {
+    protected ProcessBuilder createValidateProcessBuilderNix(String exec) {
         return new ProcessBuilder("/bin/bash", "-l", "-c", exec + " -v");
     }
 
     protected ProcessBuilder createCompileProcessBuilderWindows(String exec, boolean bare) {
-        return new ProcessBuilder("cmd", "/c", exec + (bare ? " -scb" : " -sc"));
+        return new ProcessBuilder("cmd", "/c", "\"\"" + exec + "\"" + (bare ? " -scb" : " -sc") + " \"");
     }
 
-    protected ProcessBuilder createCompileProcessBuilderUnix(String exec, boolean bare) {
+    protected ProcessBuilder createCompileProcessBuilderNix(String exec, boolean bare) {
         return new ProcessBuilder("/bin/bash", "-l", "-c", exec + (bare ? " -scb" : " -sc"));
+    }
+
+    private static class ExecResult {
+
+        String out, err;
     }
 }

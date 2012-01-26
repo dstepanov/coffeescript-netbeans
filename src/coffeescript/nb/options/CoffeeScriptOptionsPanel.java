@@ -16,7 +16,6 @@ package coffeescript.nb.options;
 import coffeescript.nb.CoffeeScriptNodeJSCompiler;
 import coffeescript.nb.options.CoffeeScriptSettings.CompilerType;
 import java.awt.Desktop;
-import java.util.logging.Logger;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
@@ -138,11 +137,11 @@ public class CoffeeScriptOptionsPanel extends javax.swing.JPanel {
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(compilerHelpScroll, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 515, Short.MAX_VALUE)
+                    .add(compilerHelpScroll)
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(compilerLabel)
-                            .add(executablePathLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE))
+                            .add(executablePathLabel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE))
                         .add(29, 29, 29)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(compilerComboBox, 0, 308, Short.MAX_VALUE)
@@ -164,8 +163,8 @@ public class CoffeeScriptOptionsPanel extends javax.swing.JPanel {
                     .add(executablePathLabel)
                     .add(executablePathTextField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .add(18, 18, 18)
-                .add(compilerHelpScroll, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 89, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(28, Short.MAX_VALUE))
+                .add(compilerHelpScroll, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -183,6 +182,8 @@ public class CoffeeScriptOptionsPanel extends javax.swing.JPanel {
             if (exec.length() == 0) {
                 if (Utilities.isUnix() || Utilities.isMac()) {
                     exec = "/usr/local/bin/coffee";
+                } else if (Utilities.isWindows()) {
+                    exec = "%APPDATA%\\npm\\coffee.cmd";
                 }
             }
             if (!exec.equals(executablePathTextField.getText())) {
