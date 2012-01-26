@@ -28,7 +28,7 @@ import org.openide.filesystems.FileObject;
 @org.openide.util.lookup.ServiceProvider(service = ProjectFactory.class)
 public class CoffeeScriptProjectFactory implements ProjectFactory2 {
 
-    public final static String PROJECT_CONFIG_FILE = ".netbeans.json";
+    public final static String PROJECT_CONFIG_FILE = "Cakefile";
 
     public Result isProject2(FileObject projectDirectory) {
         return isProject(projectDirectory) ? new Result(null) : null;

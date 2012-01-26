@@ -58,7 +58,7 @@ public class CoffeeScriptProject implements Project {
                 projectDirectory.getFileObject(CoffeeScriptProjectFactory.PROJECT_CONFIG_FILE);
         if (result == null && create) {
             try {
-                projectDirectory.createData(CoffeeScriptProjectFactory.PROJECT_CONFIG_FILE);
+                result = projectDirectory.createData(CoffeeScriptProjectFactory.PROJECT_CONFIG_FILE);
             } catch (IOException ioe) {
                 Exceptions.printStackTrace(ioe);
             }
@@ -77,7 +77,7 @@ public class CoffeeScriptProject implements Project {
                         new CoffeeScriptCopyOperation(this),
                         new CoffeeScriptProjectInfo(),
                         new CoffeeScriptLogicalView(this),
-                        new CoffeeScriptProjectCustomizer(this)
+//                        new CoffeeScriptProjectCustomizer(this)
                     });
         }
         return lookup;

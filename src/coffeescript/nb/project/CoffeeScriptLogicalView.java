@@ -14,6 +14,8 @@
 package coffeescript.nb.project;
 
 import java.awt.Image;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Action;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.CommonProjectActions;
@@ -27,6 +29,7 @@ import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
+import org.openide.util.Utilities;
 import org.openide.util.lookup.Lookups;
 import org.openide.util.lookup.ProxyLookup;
 
@@ -74,14 +77,21 @@ public class CoffeeScriptLogicalView implements LogicalViewProvider {
 
         @Override
         public Action[] getActions(boolean arg0) {
-            return new Action[]{
-                        CommonProjectActions.newFileAction(),
-                        CommonProjectActions.copyProjectAction(),
-                        CommonProjectActions.deleteProjectAction(),
-                        CommonProjectActions.setAsMainProjectAction(),
-                        CommonProjectActions.closeProjectAction(),
-                        CommonProjectActions.customizeProjectAction()
-                    };
+            List<Action> actions = new ArrayList<Action>();
+            actions.add(CommonProjectActions.newFileAction());
+            actions.add(null);
+            actions.add(CommonProjectActions.setAsMainProjectAction());
+            actions.add(CommonProjectActions.closeProjectAction());
+            actions.add(null);
+            actions.add(CommonProjectActions.renameProjectAction());
+            actions.add(CommonProjectActions.moveProjectAction());
+            actions.add(CommonProjectActions.copyProjectAction());
+            actions.add(CommonProjectActions.deleteProjectAction());
+            actions.add(null);
+            actions.addAll(Utilities.actionsForPath("Projects/Actions")); //NOI18N
+            actions.add(null);
+            actions.add(CommonProjectActions.customizeProjectAction());
+            return actions.toArray(new Action[actions.size()]);
         }
 
         @Override
