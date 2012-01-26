@@ -155,5 +155,16 @@
                 <attr name="template" boolvalue="true"/>
             </file>
         </folder>
+        <folder name="Project">
+            <folder name="CoffeeScript">
+                <file name="CoffeeScriptApplicationProject.zip" url="CoffeeScriptApplicationProject.zip">
+                    <attr name="displayName" bundlevalue="coffeescript.nb.resources.Bundle#Templates/Project/CoffeeScript/CoffeeScriptApplicationProject.zip"/>
+                    <attr name="iconBase" stringvalue="coffeescript/nb/resources/coffeescript-icon.png"/>
+                    <attr name="instantiatingIterator" methodvalue="coffeescript.nb.project.sample.CoffeeScriptApplicationWizardIterator.createIterator"/>
+                    <attr name="instantiatingWizardURL" urlvalue="nbresloc:/coffeescript/nb/project/sample/CoffeeScriptApplicationProjectDescription.html"/>
+                    <attr name="template" boolvalue="true"/>
+                </file>
+            </folder>
+        </folder>
     </folder>
 </filesystem>
