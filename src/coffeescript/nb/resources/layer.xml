@@ -95,6 +95,11 @@
                         </folder>
                     </folder>
                 </folder>
+                <folder name="Preferences">
+                    <folder name="Defaults">
+                        <file name="coffeescript-nb-resources-preferences.xml" url="preferences.xml"/>
+                    </folder>
+                 </folder>
             </folder>
             <folder name="coffeescript-string">
                 <file name="coffeescript-string.instance">
