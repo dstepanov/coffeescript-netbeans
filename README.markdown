@@ -21,9 +21,19 @@ http://netbeans.org/
 
 * Indentation & formatting, code folding
 
-* You can install Node.js with [coffee](http://jashkenas.github.com/coffee-script/#installation) command for compiling (Mac, Linux only) 
+* Option to use Node.js with [coffee](http://jashkenas.github.com/coffee-script/#installation) command for compiling. Supported platforms: Mac, Linux and new experimental support for Windows. 
+
+* Cakefile project support
 
 ### VERSION HISTORY:
+
+* 1.0.0
+
+  * Node.js compiling experimental support for Windows
+
+  * Cakefile project support
+
+  * Default indentation level 2spaces
 
 * 0.9.6
     
@@ -37,7 +47,7 @@ http://netbeans.org/
 
 * 0.9.4
     
-  * Support for node.js and coffee command compiling (Mac, Linux only)
+  * Support for Node.js and coffee command compiling (Mac, Linux only)
 
   * Bugfixes
 
@@ -81,4 +91,4 @@ Apache License, Version 2.0
 
 ### COPYRIGHT:
 
-2011 Denis Stepanov
+2011, 2012 Denis Stepanov
