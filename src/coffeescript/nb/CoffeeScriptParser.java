@@ -101,7 +101,7 @@ public class CoffeeScriptParser extends Parser {
                     int originalOffset = getSnapshot().getOriginalOffset(0);
                     line += NbDocument.findLineNumber(doc, originalOffset);
                 }
-                int offsetError = getSnapshot().getEmbeddedOffset(NbDocument.findLineOffset(doc, line - 1));
+                int offsetError = getSnapshot().getEmbeddedOffset(NbDocument.findLineOffset(doc, Math.max(0, line - 1)));
                 return Collections.singletonList(DefaultError.createDefaultError(
                         "cs.key", msg, "", getSnapshot().getSource().getFileObject(),
                         offsetError, -1, true, Severity.ERROR));
