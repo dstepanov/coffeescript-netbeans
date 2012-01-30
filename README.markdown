@@ -27,6 +27,10 @@ http://netbeans.org/
 
 ### VERSION HISTORY:
 
+* 1.0.1
+    
+  * Bugfixes
+
 * 1.0.0
 
   * Node.js compiling experimental support for Windows
