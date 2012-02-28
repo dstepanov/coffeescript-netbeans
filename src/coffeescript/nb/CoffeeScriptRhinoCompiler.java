@@ -16,26 +16,21 @@ package coffeescript.nb;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.IdScriptableObject;
-import org.mozilla.javascript.JavaScriptException;
-import org.mozilla.javascript.Script;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 import org.openide.util.Exceptions;
 
 /**
- * 
+ *
  * @author Denis Stepanov
  */
 public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
 
-    private final Map<String, Script> scriptCacheMap = new HashMap<String, Script>(1);
     private static CoffeeScriptRhinoCompiler INSTANCE;
+    private Script coffeeScriptJs;
+    private Pattern ERROR_PATTERN = Pattern.compile("(.*) on line (\\d*)(.*)");
+    private int RHINO_OPTIMALIZATION_LEVEL = 9;
 
     private CoffeeScriptRhinoCompiler() {
     }
@@ -56,8 +51,7 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
             if (e.getValue() instanceof IdScriptableObject) {
                 IdScriptableObject error = (IdScriptableObject) e.getValue();
                 String message = (String) ScriptableObject.getProperty(error, "message");
-                Pattern pattern = Pattern.compile("(.*) on line (\\d*)(.*)");
-                Matcher matcher = pattern.matcher(message);
+                Matcher matcher = ERROR_PATTERN.matcher(message);
                 if (matcher.matches()) {
                     return new CompilerResult(new Error(Integer.valueOf(matcher.group(2)), matcher.group(1) + matcher.group(3), message));
                 }
@@ -68,21 +62,26 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
     }
 
     private String compileCode(String code, boolean bare) {
-        Context.enter();
-        Context ctx = new StoppableContext();
+        Context ctx = Context.enter();
         try {
-            ctx.setInstructionObserverThreshold(1);
-            ctx.setOptimizationLevel(-1);
+            //ctx.setInstructionObserverThreshold(1);
+            ctx.setOptimizationLevel(RHINO_OPTIMALIZATION_LEVEL);
             Scriptable scope = ctx.newObject(ctx.initStandardObjects());
-            getScriptFromClasspath("coffeescript/nb/resources/coffee-script.js").exec(ctx, scope);
             scope.put("code", scope, code);
+            getCoffeeScriptJS().exec(ctx, scope);
             String options = String.format("{bare: %b}", bare);
             String script = String.format("CoffeeScript.compile(code, %s);", options);
             return (String) getScriptFromString(script).exec(ctx, scope);
-
         } finally {
             Context.exit();
         }
+    }
+
+    private synchronized Script getCoffeeScriptJS() {
+        if (coffeeScriptJs == null) {
+            coffeeScriptJs = getScriptFromClasspath("coffeescript/nb/resources/coffee-script.js");
+        }
+        return coffeeScriptJs;
     }
 
     private Script getScriptFromClasspath(String url) {
@@ -96,41 +95,29 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
     }
 
     private Script getScriptFromReader(String key, Reader reader) {
-        synchronized (scriptCacheMap) {
-            Script script = scriptCacheMap.get(key);
-            if (script == null) {
-                Context ctx = Context.enter();
-                try {
-                    ctx.setOptimizationLevel(-1);
-                    script = ctx.compileReader(reader, "", 0, null);
-                } catch (Exception e) {
-                    Exceptions.printStackTrace(e);
-                } finally {
-                    Context.exit();
-                }
-                scriptCacheMap.put(key, script);
-            }
-            return script;
+        Context ctx = Context.enter();
+        try {
+            ctx.setOptimizationLevel(RHINO_OPTIMALIZATION_LEVEL);
+            return ctx.compileReader(reader, "", 0, null);
+        } catch (Exception e) {
+            Exceptions.printStackTrace(e);
+        } finally {
+            Context.exit();
         }
+        return null;
     }
 
     private Script getScriptFromString(String string) {
-        synchronized (scriptCacheMap) {
-            Script script = scriptCacheMap.get(string);
-            if (script == null) {
-                Context ctx = Context.enter();
-                try {
-                    ctx.setOptimizationLevel(-1);
-                    script = ctx.compileString(string, "", 0, null);
-                } catch (Exception e) {
-                    Exceptions.printStackTrace(e);
-                } finally {
-                    Context.exit();
-                }
-                scriptCacheMap.put(string, script);
-            }
-            return script;
+        Context ctx = Context.enter();
+        try {
+            ctx.setOptimizationLevel(RHINO_OPTIMALIZATION_LEVEL);
+            return ctx.compileString(string, "", 0, null);
+        } catch (Exception e) {
+            Exceptions.printStackTrace(e);
+        } finally {
+            Context.exit();
         }
+        return null;
     }
 
     public static class StoppableContext extends Context {

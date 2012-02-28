@@ -231,7 +231,8 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
         public void compile() throws Exception {
             LifecycleManager.getDefault().saveAll();
             for (CoffeeScriptDataObject dataObject : data) {
-                ProgressHandle handle = handle = ProgressHandleFactory.createHandle("Compiling " + dataObject.getPrimaryFile().getNameExt(), this);
+                ProgressHandle handle = ProgressHandleFactory.createHandle("Compiling " + dataObject.getPrimaryFile().getNameExt(), this);
+                long startTime = System.currentTimeMillis();
                 try {
                     handle.start();
                     CoffeeScriptCompiler.CompilerResult result = CoffeeScriptSettings.getCompiler().compile(dataObject.getPrimaryFile().asText(), bare);
@@ -246,11 +247,15 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
                         }
                         file = folder.createData(dataObject.getName(), "js");
                         file.getOutputStream().write(result.getJs().getBytes());
-                    } else {
                     }
                     handleResult(result);
                 } finally {
                     handle.finish();
+                    long time = System.currentTimeMillis() - startTime;
+                    System.out.println("Compiling took " + time + " milliseconds");
+                    System.out.println("Compiling took " + time / 1000.0 + " seconds");
+                    System.out.println("Compiling took " + time / 1000.0 / 60.0 + " minutes");
+
                 }
             }
         }
