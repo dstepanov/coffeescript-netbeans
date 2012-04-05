@@ -16,6 +16,7 @@ package coffeescript.nb;
 import coffeescript.nb.CoffeeScriptCompiler.CompilerResult;
 import coffeescript.nb.options.CoffeeScriptSettings;
 import java.awt.event.ActionEvent;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.concurrent.Future;
 import javax.swing.AbstractAction;
@@ -24,6 +25,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
+import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.LifecycleManager;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -230,23 +232,16 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
 
         public void compile() throws Exception {
             LifecycleManager.getDefault().saveAll();
-            for (CoffeeScriptDataObject dataObject : data) {
-                ProgressHandle handle = handle = ProgressHandleFactory.createHandle("Compiling " + dataObject.getPrimaryFile().getNameExt(), this);
+            for (CoffeeScriptDataObject coffeeFile : data) {
+                ProgressHandle handle = ProgressHandleFactory.createHandle("Compiling " + coffeeFile.getPrimaryFile().getNameExt(), this);
                 try {
                     handle.start();
-                    CoffeeScriptCompiler.CompilerResult result = CoffeeScriptSettings.getCompiler().compile(dataObject.getPrimaryFile().asText(), bare);
+                    CoffeeScriptCompiler.CompilerResult result = CoffeeScriptSettings.getCompiler().compile(coffeeFile.getPrimaryFile().asText(), bare);
                     if (result == null) {
                         return; // Canceled
                     }
                     if (result.getJs() != null) {
-                        FileObject folder = dataObject.getFolder().getPrimaryFile();
-                        FileObject file = folder.getFileObject(dataObject.getName(), "js");
-                        if (file != null) {
-                            file.delete();
-                        }
-                        file = folder.createData(dataObject.getName(), "js");
-                        file.getOutputStream().write(result.getJs().getBytes());
-                    } else {
+                        CoffeeScriptUtils.writeJSForCoffeeScriptFile(result.getJs(), coffeeFile.getPrimaryFile());
                     }
                     handleResult(result);
                 } finally {
