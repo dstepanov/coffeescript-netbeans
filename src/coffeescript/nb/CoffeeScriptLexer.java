@@ -32,7 +32,7 @@ import org.openide.ErrorManager;
 import static coffeescript.nb.CoffeeScriptTokenId.*;
 
 /**
- * 
+ *
  * @author Denis Stepanov
  */
 public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId> {
@@ -53,7 +53,6 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     // 
     private CoffeeScriptTokenId prevToken;
     private boolean prevSpaced;
-    private boolean newLine;
     private int indent;
 
     public CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
@@ -211,7 +210,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                     }
 
                 }
-                if (inputMatch("=")) {
+                if (inputMatch('=')) {
                     return token(ANY_OPERATOR);
                 }
                 return token(DIV);
@@ -234,6 +233,15 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             }
             case '`': {
                 return balancedJSToken() ? token(JSTOKEN) : token(ERROR);
+            }
+            case '.': {
+                return token(DOT);
+            }
+            case '?': {
+                return inputMatch('.') ? token(QDOT) : token(QM);
+            }
+            case ':': {
+                return inputMatch(':') ? token(DOUBLE_COLON) : token(COLON);
             }
         }
         input.backup(1);
@@ -275,9 +283,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             return ANY_KEYWORD;
         }
         if (COFFEE_ALIASES.contains(text)) {
-            return ANY_KEYWORD;
+            return EnumSet.of(DOT, QDOT, DOUBLE_COLON).contains(prevToken) ? IDENTIFIER : ANY_KEYWORD;
         }
-        if("own".equals(text) && prevToken == CoffeeScriptTokenId.FOR){
+        if ("own".equals(text) && prevToken == CoffeeScriptTokenId.FOR) {
             return ANY_KEYWORD;
         }
         if (text.equals("@")) {

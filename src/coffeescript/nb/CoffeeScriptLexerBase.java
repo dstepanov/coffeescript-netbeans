@@ -142,4 +142,12 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
         }
         return true;
     }
+
+    protected boolean inputMatch(char c) {
+        if (input.read() != c) {
+            input.backup(1);
+            return false;
+        }
+        return true;
+    }
 }
