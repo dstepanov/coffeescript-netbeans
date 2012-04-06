@@ -64,7 +64,8 @@ public enum CoffeeScriptTokenId implements TokenId {
     NONUNARY_OP(null, OPERATOR_CAT),
     DIV("/", OPERATOR_CAT),
     INC("++", OPERATOR_CAT),
-    DEC("--", OPERATOR_CAT);
+    DEC("--", OPERATOR_CAT),
+    AT("@", KEYWORD_CAT);
     //
     private final String fixedText;
     private final Category category;

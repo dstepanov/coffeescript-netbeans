@@ -243,6 +243,15 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case ':': {
                 return inputMatch(':') ? token(DOUBLE_COLON) : token(COLON);
             }
+            case '@': {
+                int read = input.readLength();
+                CoffeeScriptTokenId convertToken = convertToken(nextRhinoToken());
+                if (convertToken == IDENTIFIER) {
+                    return token(FIELD);
+                }
+                input.backup(input.readLength() - read);
+                return token(AT);
+            }
         }
         input.backup(1);
         int token = nextRhinoToken();
@@ -287,14 +296,6 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         }
         if ("own".equals(text) && prevToken == CoffeeScriptTokenId.FOR) {
             return ANY_KEYWORD;
-        }
-        if (text.equals("@")) {
-            int nextToken = nextRhinoToken();
-            CoffeeScriptTokenId convertToken = convertToken(nextToken);
-            if (convertToken == IDENTIFIER) {
-                return FIELD;
-            }
-            return convertToken;
         }
         return convertToken(token);
     }
