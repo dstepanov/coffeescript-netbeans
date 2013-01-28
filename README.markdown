@@ -27,6 +27,16 @@ http://netbeans.org/
 
 ### VERSION HISTORY:
 
+* 1.2
+    
+  * CoffeeScript updated to v1.4.0
+  
+  * New option to set autocompile target folder
+  
+  * New option to always use UTF8 encoding for CoffeeScript files
+
+  * NetBeans 7.3 support
+
 * 1.1.1
     
   * CoffeeScript updated to v1.3.3
@@ -35,7 +45,7 @@ http://netbeans.org/
     
   * CoffeeScript updated to v1.3.1
 
-  * Syntax highlight Improvements
+  * Syntax highlight improvements
 
 * 1.0.2
     
@@ -93,7 +103,7 @@ http://netbeans.org/
 
 ### INSTRUCTIONS:
 
-Download [coffeescript-nb.nbm](https://github.com/dstepanov/coffeescript-netbeans/downloads) and add it using NetBeans plugin manager
+Download [coffeescript-nb.nbm](http://plugins.netbeans.org/plugin/39007) and add it using NetBeans plugin manager
 
 Plugin requires NetBeans 7.0
 
@@ -109,4 +119,4 @@ Apache License, Version 2.0
 
 ### COPYRIGHT:
 
-2011, 2012 Denis Stepanov
+2011-2013 Denis Stepanov
