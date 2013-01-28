@@ -13,6 +13,7 @@
 // limitations under the License.
 package coffeescript.nb.project;
 
+import coffeescript.nb.CoffeeScriptSourceEncodingQuery;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -77,12 +78,13 @@ public class CoffeeScriptProject implements Project {
                         new CoffeeScriptCopyOperation(this),
                         new CoffeeScriptProjectInfo(),
                         new CoffeeScriptLogicalView(this),
+                        new CoffeeScriptSourceEncodingQuery()
 //                        new CoffeeScriptProjectCustomizer(this)
                     });
         }
         return lookup;
     }
-
+    
     private final class CoffeeScriptActionProvider implements ActionProvider {
 
         private String[] supported = new String[]{

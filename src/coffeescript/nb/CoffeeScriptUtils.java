@@ -13,10 +13,15 @@
 // limitations under the License.
 package coffeescript.nb;
 
+import coffeescript.nb.options.CoffeeScriptSettings;
+import java.io.File;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
 import org.netbeans.api.queries.FileEncodingQuery;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 
 /**
@@ -26,7 +31,23 @@ import org.openide.util.Exceptions;
 public class CoffeeScriptUtils {
 
     public static void writeJS(final String js, String name, FileObject folder, Charset encoding) {
+        String outputFolder = CoffeeScriptSettings.get().getOutputFolder();
         try {
+            Project project = FileOwnerQuery.getOwner(folder);
+            if (outputFolder != null && outputFolder.trim().length() > 0) {
+                if (project != null) {
+                    FileObject projectDirectory = project.getProjectDirectory();
+                    String projectPath = projectDirectory.getPath();
+                    String path = folder.getPath().replace(projectPath, outputFolder);
+                    File pathFolder = new File(path);
+                    if(!pathFolder.exists()) {
+                        pathFolder.mkdirs();
+                    }
+                    folder = FileUtil.toFileObject(pathFolder);
+                } else {
+                    folder = FileUtil.toFileObject(new File(outputFolder));
+                }
+            }
             FileObject file = folder.getFileObject(name, "js");
             if (file == null) {
                 file = folder.createData(name, "js");

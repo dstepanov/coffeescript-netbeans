@@ -25,6 +25,8 @@ import org.openide.nodes.Node;
 import org.openide.nodes.Children;
 import org.openide.util.Lookup;
 import org.openide.text.DataEditorSupport;
+import org.openide.util.lookup.Lookups;
+import org.openide.util.lookup.ProxyLookup;
 
 /**
  * 
@@ -45,7 +47,10 @@ public class CoffeeScriptDataObject extends MultiDataObject {
 
     @Override
     public Lookup getLookup() {
-        return getCookieSet().getLookup();
+        return new ProxyLookup(new Lookup[] {
+            getCookieSet().getLookup(),
+            Lookups.fixed(new CoffeeScriptSourceEncodingQuery())
+        });
     }
     
 }

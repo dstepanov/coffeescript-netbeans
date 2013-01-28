@@ -64,6 +64,22 @@ public class CoffeeScriptSettings {
     public void setCompilerExec(String compilerExec) {
         getPreferences().put("compilerExec", compilerExec);
     }
+    
+    public String getOutputFolder() {
+        return getPreferences().get("outputFolder", "");
+    }
+
+    public void setOutputFolder(String outputFolder) {
+        getPreferences().put("outputFolder", outputFolder);
+    }
+    
+    public boolean isUseUTF8Encoding() {
+        return getPreferences().getBoolean("useUTF8", false);
+    }
+
+    public void setUseUTF8Encoding(boolean useUTF8) {
+        getPreferences().putBoolean("useUTF8", useUTF8);
+    }
 
     public static CoffeeScriptCompiler getCompiler() {
         switch (CoffeeScriptSettings.get().getCompilerType()) {
