@@ -29,6 +29,10 @@ http://netbeans.org/
 
 * 1.2
     
+  * Bugfixes
+
+* 1.2
+    
   * CoffeeScript updated to v1.4.0
   
   * New option to set autocompile target folder
