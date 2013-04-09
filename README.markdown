@@ -27,7 +27,7 @@ http://netbeans.org/
 
 ### VERSION HISTORY:
 
-* 1.2
+* 1.2.1
     
   * Bugfixes
 
