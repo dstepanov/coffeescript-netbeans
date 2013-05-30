@@ -218,7 +218,7 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
     }
 
     protected ProcessBuilder createValidateProcessBuilderNix(String exec) {
-        return new ProcessBuilder("/bin/bash", "-l", "-c", exec + " -v");
+        return new ProcessBuilder("/bin/bash", "-c", exec + " -v");
     }
 
     protected ProcessBuilder createCompileProcessBuilderWindows(String exec, boolean bare) {
@@ -226,7 +226,7 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
     }
 
     protected ProcessBuilder createCompileProcessBuilderNix(String exec, boolean bare) {
-        return new ProcessBuilder("/bin/bash", "-l", "-c", exec + (bare ? " -scb" : " -sc"));
+        return new ProcessBuilder("/bin/bash", "-c", exec + (bare ? " -scb" : " -sc"));
     }
 
     private static class ExecResult {
