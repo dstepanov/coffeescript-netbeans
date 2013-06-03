@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -36,7 +37,9 @@ import org.openide.util.Utilities;
  */
 public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
 
-    private static Pattern ERROR_PATTERN = Pattern.compile("(.*) on line (\\d*)(.*)");
+    private static Pattern ERROR_PATTERN1 = Pattern.compile("(.*) on line (\\d*)(.*)");
+    private static Pattern ERROR_PATTERN2 = Pattern.compile(".*:(\\d*):(\\d*):.*: (.*)");
+
     private static CoffeeScriptNodeJSCompiler INSTANCE;
     private static final Logger logger = Logger.getLogger(CoffeeScriptNodeJSCompiler.class.getName());
 
@@ -95,6 +98,9 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
     }
 
     private ExecResult execNix(final String output, ProcessBuilder pb) throws Exception {
+        Map<String, String> environment = pb.environment();
+        // Prevent "env: node: No such file or directory"
+        environment.put("PATH", environment.get("PATH") + ":/usr/local/bin");
         Process p = pb.start();
         if (output != null) {
             OutputStream os = p.getOutputStream();
@@ -180,9 +186,13 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
                 if (i != -1) {
                     err = err.substring(0, i);
                 }
-                Matcher matcher = ERROR_PATTERN.matcher(err);
+                Matcher matcher = ERROR_PATTERN1.matcher(err);
                 if (matcher.matches()) {
                     return new CompilerResult(new Error(Integer.valueOf(matcher.group(2)), matcher.group(1) + matcher.group(3), err));
+                }
+                matcher = ERROR_PATTERN2.matcher(err);
+                if (matcher.matches()) {
+                    return new CompilerResult(new Error(Integer.valueOf(matcher.group(1)), Integer.valueOf(matcher.group(2)), matcher.group(3), err));
                 }
                 return new CompilerResult(new Error(-1, "", err));
             }
@@ -218,7 +228,7 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
     }
 
     protected ProcessBuilder createValidateProcessBuilderNix(String exec) {
-        return new ProcessBuilder("/bin/bash", "-c", exec + " -v");
+        return new ProcessBuilder(exec, "-v");
     }
 
     protected ProcessBuilder createCompileProcessBuilderWindows(String exec, boolean bare) {
@@ -226,7 +236,7 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
     }
 
     protected ProcessBuilder createCompileProcessBuilderNix(String exec, boolean bare) {
-        return new ProcessBuilder("/bin/bash", "-c", exec + (bare ? " -scb" : " -sc"));
+        return new ProcessBuilder(exec, (bare ? "-scb" : "-sc"));
     }
 
     private static class ExecResult {
