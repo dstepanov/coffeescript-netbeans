@@ -27,6 +27,10 @@ http://netbeans.org/
 
 ### VERSION HISTORY:
 
+* 1.4
+
+  * Internal improvements and bugfixes
+
 * 1.3
     
   * CoffeeScript updated to v1.6.3

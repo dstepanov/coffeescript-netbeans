@@ -2,5 +2,5 @@ Manifest-Version: 1.0
 OpenIDE-Module: coffeescript.nb/1
 OpenIDE-Module-Layer: coffeescript/nb/resources/layer.xml
 OpenIDE-Module-Localizing-Bundle: coffeescript/nb/resources/Bundle.properties
-OpenIDE-Module-Specification-Version: 1.3
+OpenIDE-Module-Specification-Version: 1.4
 
