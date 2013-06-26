@@ -18,8 +18,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.IdScriptableObject;
 import org.mozilla.javascript.JavaScriptException;
@@ -56,12 +54,10 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
             if (e.getValue() instanceof IdScriptableObject) {
                 IdScriptableObject error = (IdScriptableObject) e.getValue();
                 String message = (String) ScriptableObject.getProperty(error, "message");
-                Pattern pattern = Pattern.compile("(.*) on line (\\d*)(.*)");
-                Matcher matcher = pattern.matcher(message);
-                if (matcher.matches()) {
-                    return new CompilerResult(new Error(Integer.valueOf(matcher.group(2)), matcher.group(1) + matcher.group(3), message));
-                }
-                return new CompilerResult(new Error(-1, "", message));
+                IdScriptableObject location = (IdScriptableObject) ScriptableObject.getProperty(error, "location");
+                Double line = (Double) ScriptableObject.getProperty(location, "first_line");
+                Double column = (Double) ScriptableObject.getProperty(location, "first_column");
+                return new CompilerResult(new Error(line == null ? -1 : line.intValue()+1, column == null ? 0 : column.intValue()+1, message, message));
             }
             return new CompilerResult(new Error(-1, "", e.getMessage()));
         }
