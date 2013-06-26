@@ -150,4 +150,10 @@ public abstract class CoffeeScriptLexerBase<T extends TokenId> implements Lexer<
         }
         return true;
     }
+    
+    protected int peek() {
+        int c = input.read();
+        input.backup(1);
+        return c;
+    }
 }

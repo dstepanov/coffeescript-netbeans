@@ -18,18 +18,12 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.mozilla.nb.javascript.CompilerEnvirons;
-import org.mozilla.nb.javascript.ContextFactory;
-import org.mozilla.nb.javascript.ErrorReporter;
-import org.mozilla.nb.javascript.EvaluatorException;
-import org.mozilla.nb.javascript.Parser;
-import org.mozilla.nb.javascript.Token;
-import org.mozilla.nb.javascript.TokenStream;
 import org.netbeans.spi.lexer.LexerInput;
 import org.netbeans.spi.lexer.LexerRestartInfo;
 import org.netbeans.spi.lexer.TokenPropertyProvider;
-import org.openide.ErrorManager;
 import static coffeescript.nb.CoffeeScriptTokenId.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -37,13 +31,31 @@ import static coffeescript.nb.CoffeeScriptTokenId.*;
  */
 public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId> {
 
-    private Parser parser;
-    private TokenStream tokenStream;
-    //
-    private final static Set<String> COFFEE_KEYWORDS = new HashSet<String>(Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "when"));
     private final static Set<String> COFFEE_ALIASES = new HashSet<String>(Arrays.asList("and", "or", "is", "isnt", "not", "yes", "no", "on", "off"));
     private final static Set<CoffeeScriptTokenId> NOT_REGEX = EnumSet.of(NUMBER, REGEX, BOOL, INC, DEC, RBRACKET);
     private final static Set<CoffeeScriptTokenId> NOT_SPACED_REGEX = EnumSet.of(RPAREN, RBRACE, THIS, IDENTIFIER, STRING);
+    private final static Map<String, CoffeeScriptTokenId> TEXTID_TO_TOKEN = new HashMap<String, CoffeeScriptTokenId>();
+
+    static {
+        for (CoffeeScriptTokenId token : CoffeeScriptTokenId.values()) {
+            if (token.getCategory() == Category.KEYWORD_CAT && token.fixedText() != null) {
+                TEXTID_TO_TOKEN.put(token.fixedText(), token);
+            }
+        }
+        for (String jsKeywork : Arrays.asList("true", "false", "null", "this", "new", "delete", "typeof", "in", "instanceof",
+                "return", "throw", "break", "continue", "debugger", "if", "else", "switch", "for", "while", "do", "try", "catch", "finally",
+                "class", "extends", "super")) {
+            TEXTID_TO_TOKEN.put(jsKeywork, ANY_KEYWORD);
+        }
+        for (String coffeeKeyword : Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "when")) {
+            TEXTID_TO_TOKEN.put(coffeeKeyword, ANY_KEYWORD);
+        }
+        for (String coffeeAlias : COFFEE_ALIASES) {
+            TEXTID_TO_TOKEN.put(coffeeAlias, ANY_KEYWORD);
+        }
+        TEXTID_TO_TOKEN.put("true", BOOL);
+        TEXTID_TO_TOKEN.put("false", BOOL);
+    }
     //
     private final static Pattern REGEX_MATCH = Pattern.compile("^\\/(?![\\s=])[^\\/\\n\\\\]*(?:(?:\\\\[\\s\\S]|\\[[^\\]\\n\\\\]*(?:\\\\[\\s\\S][^\\]\\n\\\\]*)*])[^\\/\\n\\\\]*)*\\/[imgy]{0,4}(?!\\w)");
 
@@ -57,60 +69,19 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
 
     public CoffeeScriptLexer(LexerRestartInfo<CoffeeScriptTokenId> info) {
         super(info.input(), info.tokenFactory());
-        // TODO Use Rhino's scanner and TokenStream classes.
-        // Unfortunately, they don't provide access... I'll need a hacked version of
-        // Rhino!
-        CompilerEnvirons compilerEnv = new CompilerEnvirons();
-        ErrorReporter errorReporter =
-                new ErrorReporter() {
-
-                    public void warning(String message, String sourceName, int line, String lineSource, int lineOffset, String id, Object params) {
-                    }
-
-                    public void error(String message, String sourceName, int line, String lineSource, int lineOffset, String id, Object params) {
-                    }
-
-                    public EvaluatorException runtimeError(String message, String sourceName, int line, String lineSource, int lineOffset) {
-                        return null;
-                    }
-                };
-
-        RhinoContext ctx = new RhinoContext();
-        compilerEnv.initFromContext(ctx);
-
-        compilerEnv.setErrorReporter(errorReporter);
-        compilerEnv.setGeneratingSource(false);
-        compilerEnv.setGenerateDebugInfo(false);
-
-        compilerEnv.setXmlAvailable(true);
-
-        // The parser is NOT used for parsing here, but the Rhino scanner
-        // calls into the parser for error messages. So we register our own error
-        // handler for the parser and pass it into the tokenizer to handle errors.
-
-        parser = new Parser(compilerEnv, errorReporter);
-        tokenStream = new TokenStream(parser, null, null, "", 0);
-        parser.setTokenStream(tokenStream);
-        tokenStream.setInput(info.input());
-
         if (info.state() != null) {
             State state = (State) info.state();
-            tokenStream.fromState(state.getTokenStreamState());
             prevToken = state.getPrevToken();
             prevSpaced = state.isPrevSpaced();
             indent = state.getIndent();
         }
-
-        // Ensure that the parser instance is pointing to the same tokenstream instance
-        // such that its error handler etc. is synchronized
-        parser.setTokenStream(tokenStream);
     }
 
     public void release() {
     }
 
     public Object state() {
-        return new State(tokenStream.toState(), prevToken, prevSpaced, indent);
+        return new State(prevToken, prevSpaced, indent);
     }
 
     protected org.netbeans.api.lexer.Token<CoffeeScriptTokenId> token(CoffeeScriptTokenId id) {
@@ -156,7 +127,195 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 break;
             }
         }
+
+        if (isDigit(c) || (c == '.' && isDigit(peek()))) {
+
+            StringBuilder buffer = new StringBuilder();
+
+            int base = 10;
+
+            if (c == '0') {
+                c = input.read();
+                if (c == 'x' || c == 'X') {
+                    base = 16;
+                    c = input.read();
+                } else if (isDigit(c)) {
+                    base = 8;
+                } else {
+                    buffer.append('0');
+                }
+            }
+
+            if (base == 16) {
+                while (0 <= xDigitToInt(c, 0)) {
+                    buffer.append((char) c);
+                    c = input.read();
+                }
+            } else {
+                while ('0' <= c && c <= '9') {
+                    /*
+                     * We permit 08 and 09 as decimal numbers, which
+                     * makes our behavior a superset of the ECMA
+                     * numeric grammar.  We might not always be so
+                     * permissive, so we warn about it.
+                     */
+                    if (base == 8 && c >= '8') {
+                        base = 10;
+                    }
+                    buffer.append((char) c);
+                    c = input.read();
+                }
+            }
+
+            boolean isInteger = true;
+
+            if (base == 10 && (c == '.' || c == 'e' || c == 'E')) {
+                isInteger = false;
+                if (c == '.') {
+                    do {
+                        buffer.append((char) c);
+                        c = input.read();
+                    } while (isDigit(c));
+                }
+                if (c == 'e' || c == 'E') {
+                    buffer.append((char) c);
+                    c = input.read();
+                    if (c == '+' || c == '-') {
+                        buffer.append((char) c);
+                        c = input.read();
+                    }
+                    if (!isDigit(c)) {
+                        return token(ERROR);
+                    }
+                    do {
+                        buffer.append((char) c);
+                        c = input.read();
+                    } while (isDigit(c));
+                }
+            }
+
+            input.backup(1);
+
+            String numString = buffer.toString();
+            if (base == 10 && !isInteger) {
+                try {
+                    Double.valueOf(numString).doubleValue();
+                } catch (NumberFormatException ex) {
+                    return token(ERROR);
+                }
+            }
+            return token(NUMBER);
+        }
+
+        boolean startsWithAt = false;
+        boolean identifierStart;
+        boolean isUnicodeEscapeStart = false;
+        if (c == '\\') {
+            c = input.read();
+            if (c == 'u') {
+                identifierStart = true;
+                isUnicodeEscapeStart = true;
+            } else {
+                identifierStart = false;
+                input.backup(1);
+                c = '\\';
+            }
+        } else {
+            if (c == '@') {
+                c = input.read();
+                startsWithAt = true;
+            }
+            identifierStart = Character.isJavaIdentifierStart((char) c);
+        }
+        if (startsWithAt && !identifierStart) {
+            return token(AT);
+        }
+        if (identifierStart) {
+            StringBuilder buffer = new StringBuilder();
+            if (!isUnicodeEscapeStart) {
+                buffer.append((char) c);
+            }
+            boolean containsEscape = isUnicodeEscapeStart;
+            while (true) {
+                if (isUnicodeEscapeStart) {
+                    // strictly speaking we should probably push-back
+                    // all the bad characters if the <backslash>uXXXX
+                    // sequence is malformed. But since there isn't a
+                    // correct context(is there?) for a bad Unicode
+                    // escape sequence in an identifier, we can report
+                    // an error here.
+                    int escapeVal = 0;
+                    for (int i = 0; i != 4; ++i) {
+                        c = input.read();
+                        escapeVal = xDigitToInt(c, escapeVal);
+                        // Next check takes care about c < 0 and bad escape
+                        if (escapeVal < 0) {
+                            break;
+                        }
+                    }
+                    if (escapeVal < 0) {
+                        return token(ERROR);
+                    }
+                    buffer.append((char) escapeVal);
+
+                    isUnicodeEscapeStart = false;
+                } else {
+                    c = input.read();
+                    if (c == '\\') {
+                        c = input.read();
+                        if (c == 'u') {
+                            isUnicodeEscapeStart = true;
+                            containsEscape = true;
+                        } else {
+                            return token(ERROR);
+                        }
+                    } else {
+                        if (c == LexerInput.EOF || !Character.isJavaIdentifierPart((char) c)) {
+                            break;
+                        }
+                        buffer.append((char) c);
+                    }
+                }
+            }
+
+            input.backup(1);
+
+            if (startsWithAt) {
+                return token(FIELD);
+            }
+
+            if (EnumSet.of(DOT, QDOT, DOUBLE_COLON).contains(prevToken)) {
+                return token(IDENTIFIER);
+            }
+
+            String text = buffer.toString();
+            if (!containsEscape) {
+                CoffeeScriptTokenId token = TEXTID_TO_TOKEN.get(text);
+                if (token != null) {
+                    return token(token);
+                }
+                if ("own".equals(text) && prevToken == CoffeeScriptTokenId.FOR) {
+                    return token(ANY_KEYWORD);
+                }
+            }
+            return token(IDENTIFIER);
+        }
+
         switch (c) {
+            case ';':
+                return token(SEMI);
+            case '(':
+                return token(LPAREN);
+            case ')':
+                return token(RPAREN);
+            case '{':
+                return token(LBRACE);
+            case '}':
+                return token(RBRACE);
+            case '[':
+                return token(LBRACKET);
+            case ']':
+                return token(RBRACKET);
             case '\\':
                 return token(ANY_OPERATOR);
             case '"': {
@@ -243,25 +402,14 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case ':': {
                 return inputMatch(':') ? token(DOUBLE_COLON) : token(COLON);
             }
-            case '@': {
-                int read = input.readLength();
-                CoffeeScriptTokenId convertToken = convertToken(nextRhinoToken());
-                if (convertToken == IDENTIFIER) {
-                    return token(FIELD);
-                }
-                input.backup(input.readLength() - read);
-                return token(AT);
+            case '+': {
+                return inputMatch('+') ? token(INC) : token(ANY_OPERATOR);
+            }
+            case '-': {
+                return inputMatch('-') ? token(DEC) : token(ANY_OPERATOR);
             }
         }
-        input.backup(1);
-        int token = nextRhinoToken();
-        CoffeeScriptTokenId tokenType = getTokenId(token);
-        if (input.readLength() < 1) {
-            if (token == Token.EOF) {
-                return null;
-            }
-        }
-        return token(tokenType);
+        return token(ANY_OPERATOR);
     }
 
     private org.netbeans.api.lexer.Token<CoffeeScriptTokenId> indentToken(int lineIndent) {
@@ -275,186 +423,37 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
         return token(WHITESPACE);
     }
 
-    private int nextRhinoToken() {
-        try {
-            return tokenStream.getToken() & Parser.CLEAR_TI_MASK;
-        } catch (Exception ex) {
-            ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex);
-        } catch (AssertionError ex) {
-            ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex);
+    /**
+     * If character <tt>c</tt> is a hexadecimal digit, return
+     * <tt>accumulator</tt> * 16 plus corresponding number. Otherise return -1.
+     */
+    public static int xDigitToInt(int c, int accumulator) {
+        check:
+        {
+            // Use 0..9 < A..Z < a..z
+            if (c <= '9') {
+                c -= '0';
+                if (0 <= c) {
+                    break check;
+                }
+            } else if (c <= 'F') {
+                if ('A' <= c) {
+                    c -= ('A' - 10);
+                    break check;
+                }
+            } else if (c <= 'f') {
+                if ('a' <= c) {
+                    c -= ('a' - 10);
+                    break check;
+                }
+            }
+            return -1;
         }
-        return org.mozilla.nb.javascript.Token.ERROR;
+        return (accumulator << 4) | c;
     }
 
-    private CoffeeScriptTokenId getTokenId(int token) {
-        String text = input.readText().toString();
-        if (COFFEE_KEYWORDS.contains(text)) {
-            return ANY_KEYWORD;
-        }
-        if (COFFEE_ALIASES.contains(text)) {
-            return EnumSet.of(DOT, QDOT, DOUBLE_COLON).contains(prevToken) ? IDENTIFIER : ANY_KEYWORD;
-        }
-        if ("own".equals(text) && prevToken == CoffeeScriptTokenId.FOR) {
-            return ANY_KEYWORD;
-        }
-        return convertToken(token);
-    }
-
-    private CoffeeScriptTokenId convertToken(int token) {
-        switch (token) {
-            case 65535: // SIGN ERRORS! Why does this happen?
-                return ERROR; // Dont show errors
-            case Token.ERROR://          = -1, // well-known as the only code < EOF
-                return ERROR;
-            case Token.LINE_COMMENT:
-            case Token.BLOCK_COMMENT:
-                return COMMENT;
-            case Token.NEW:
-                return NEW;
-            case Token.DOT:
-                return DOT;
-            case Token.WHITESPACE://     = 153,
-            case Token.EOF://            = 0,  // end of file token - (not EOF_CHAR)
-                return WHITESPACE;
-            case Token.EOL://            = 1,  // end of line
-                return EOL;
-            case Token.FUNCTION:
-                return IDENTIFIER;
-            case Token.THIS:
-                return THIS;
-            case Token.FOR:
-                return FOR;
-            case Token.IF:
-                return IF;
-            case Token.WHILE:
-                return WHILE;
-            case Token.ELSE:
-                return ELSE;
-            case Token.CASE:
-                return CASE;
-            case Token.DEFAULT:
-                return DEFAULT;
-            case Token.BREAK:
-                return BREAK;
-            case Token.SWITCH:
-                return SWITCH;
-            case Token.TRUE:
-            case Token.FALSE:
-                return BOOL;
-            case Token.DO:
-            case Token.WITH:
-            case Token.CATCH:
-            case Token.CONST:
-            case Token.CONTINUE:
-            case Token.DELPROP:
-            case Token.EXPORT:
-
-            case Token.FINALLY:
-            case Token.IMPORT:
-            case Token.IN:
-            case Token.INSTANCEOF:
-            case Token.NULL:
-            case Token.RESERVED:
-            case Token.RETURN:
-            case Token.THROW:
-
-            case Token.TRY:
-            case Token.TYPEOF:
-            case Token.UNDEFINED:
-            case Token.VAR:
-            case Token.VOID:
-            case Token.GOTO:
-            case Token.YIELD:
-            case Token.LET:
-            case Token.DEBUGGER:
-                return ANY_KEYWORD;
-            case Token.NUMBER:
-                return NUMBER;
-            case Token.STRING_BEGIN:
-            case Token.STRING:
-            case Token.STRING_END:
-                return STRING;
-            case Token.DIV:
-                return DIV;
-            case Token.ASSIGN_DIV:
-                return ANY_OPERATOR;
-            case Token.REGEXP_BEGIN:
-            case Token.REGEXP:
-            case Token.REGEXP_END:
-                return REGEX;
-            case Token.IFEQ://           = 6,
-            case Token.IFNE://           = 7,
-            case Token.BITOR://          = 9,
-            case Token.BITXOR://         = 10,
-            case Token.BITAND://         = 11,
-            case Token.EQ://             = 12,
-            case Token.NE://             = 13,
-            case Token.LT://             = 14,
-            case Token.LE://             = 15,
-            case Token.GT://             = 16,
-            case Token.GE://             = 17,
-            case Token.LSH://            = 18,
-            case Token.RSH://            = 19,
-            case Token.URSH://           = 20,
-            case Token.ADD://            = 21,
-            case Token.SUB://            = 22,
-            case Token.MUL://            = 23,
-            case Token.MOD://            = 25,
-            case Token.NOT://            = 26,
-            case Token.BITNOT://         = 27,
-            case Token.POS://            = 28,
-            case Token.SHEQ://           = 45,   // shallow equality (===)
-            case Token.SHNE://           = 46,   // shallow inequality (!==)
-            case Token.ASSIGN://         = 86,  // simple assignment  (=)
-            case Token.ASSIGN_BITOR://   = 87,  // |=
-            case Token.ASSIGN_BITXOR://  = 88,  // ^=
-            case Token.ASSIGN_BITAND://  = 89,  // |=
-            case Token.ASSIGN_LSH://     = 90,  // <<=
-            case Token.ASSIGN_RSH://     = 91,  // >>=
-            case Token.ASSIGN_URSH://    = 92,  // >>>=
-            case Token.ASSIGN_ADD://     = 93,  // +=
-            case Token.ASSIGN_SUB://     = 94,  // -=
-            case Token.ASSIGN_MUL://     = 95,  // *=
-            case Token.ASSIGN_MOD://     = 97;  // %=
-            case Token.OR://             = 100, // logical or (||)
-            case Token.AND://            = 101, // logical and (&&)
-            case Token.HOOK://           = 98, // conditional (?:)
-                return NONUNARY_OP;
-            case Token.COLON://          = 99,
-                return COLON;
-            // I don't want to treat it as a nonunary operator since formatting doesn't
-            // handle it well yet
-            case Token.COMMA://          = 85,  // comma operator
-                return ANY_OPERATOR;
-
-            case Token.NAME://           = 38,
-                return IDENTIFIER;
-            case Token.NEG://            = 29,
-            case Token.INC://            = 102, // increment/decrement (++ --)
-                return INC;
-            case Token.DEC://            = 103,
-                return DEC;
-            case Token.ARRAYLIT://       = 63, // array literal
-            case Token.OBJECTLIT://      = 64, // object literal
-                // XXX What do I do about these?
-                return IDENTIFIER;
-            case Token.SEMI:
-                return SEMI;
-            case Token.LB:
-                return LBRACKET;
-            case Token.RB:
-                return RBRACKET;
-            case Token.LC:
-                return LBRACE;
-            case Token.RC:
-                return RBRACE;
-            case Token.LP:
-                return LPAREN;
-            case Token.RP:
-                return RPAREN;
-            default:
-                return IDENTIFIER;
-        }
+    static boolean isDigit(int c) {
+        return '0' <= c && c <= '9';
     }
 
     private boolean isSpaceCharacter(int c) {
@@ -467,20 +466,14 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
 
     private static class State {
 
-        final Object tokenStreamState;
         final CoffeeScriptTokenId prevToken;
         final boolean prevSpaced;
         int indent;
 
-        public State(Object tokenStreamState, CoffeeScriptTokenId prevToken, boolean prevSpaced, int indent) {
-            this.tokenStreamState = tokenStreamState;
+        public State(CoffeeScriptTokenId prevToken, boolean prevSpaced, int indent) {
             this.prevToken = prevToken;
             this.prevSpaced = prevSpaced;
             this.indent = indent;
-        }
-
-        public Object getTokenStreamState() {
-            return tokenStreamState;
         }
 
         public CoffeeScriptTokenId getPrevToken() {
@@ -493,13 +486,6 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
 
         public int getIndent() {
             return indent;
-        }
-    }
-
-    private static final class RhinoContext extends org.mozilla.nb.javascript.Context {
-
-        public RhinoContext() {
-            super(ContextFactory.getGlobal());
         }
     }
 

@@ -61,7 +61,6 @@ public enum CoffeeScriptTokenId implements TokenId {
     DOUBLE_COLON("::", OPERATOR_CAT),
     SEMI(";", OPERATOR_CAT),
     FIELD(null, FIELD_CAT),
-    NONUNARY_OP(null, OPERATOR_CAT),
     DIV("/", OPERATOR_CAT),
     INC("++", OPERATOR_CAT),
     DEC("--", OPERATOR_CAT),
