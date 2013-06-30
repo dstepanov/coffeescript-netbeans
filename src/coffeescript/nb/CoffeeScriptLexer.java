@@ -62,8 +62,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     static {
         NOT_SPACED_REGEX.addAll(NOT_REGEX);
     }
-    // 
+    //
     private CoffeeScriptTokenId prevToken;
+    private boolean func_defined = false;
     private boolean prevSpaced;
     private int indent;
 
@@ -288,6 +289,34 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return token(IDENTIFIER);
             }
 
+            int reads = 0;
+
+            c = input.read();
+            reads++;
+            while(isSpaceCharacter(c)) {
+              c = input.read();
+              reads++;
+            }
+            if(c == ':' || c == '=') {
+                while(true) {
+                    c = input.read();
+                    reads++;
+                    if(c == '-') {
+                        c = input.read();
+                        reads++;
+                        if(c == '>') {
+                          input.backup(reads);
+                          func_defined = true;
+                          return token(FUNCTION);
+                        }
+                    }
+                    if(c == '\n' || c == ':' || c == '=') {
+                      break;
+                    }
+                }
+            }
+            input.backup(reads);
+
             String text = buffer.toString();
             if (!containsEscape) {
                 CoffeeScriptTokenId token = TEXTID_TO_TOKEN.get(text);
@@ -305,9 +334,17 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case ';':
                 return token(SEMI);
             case '(':
-                return token(LPAREN);
+                if(func_defined) {
+                  return token (FLPAREN);
+                } else {
+                  return token(LPAREN);
+                }
             case ')':
-                return token(RPAREN);
+                if(func_defined) {
+                  return token (FRPAREN);
+                } else {
+                  return token(RPAREN);
+                }
             case '{':
                 return token(LBRACE);
             case '}':
@@ -406,6 +443,11 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return inputMatch('+') ? token(INC) : token(ANY_OPERATOR);
             }
             case '-': {
+                if(peek() == '>') {
+                  input.read();
+                  func_defined = false;
+                  return token(ARROW);
+                }
                 return inputMatch('-') ? token(DEC) : token(ANY_OPERATOR);
             }
         }

@@ -2,17 +2,23 @@
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 
 <fontscolors>
-    <fontcolor name="keyword" default="keyword"/>
-    <fontcolor name="number" default="number"/>
-    <fontcolor name="operator" default="operator"/>
-    <fontcolor name="string" default="string"/>
-    <fontcolor name="comment" default="comment"/>
-    <fontcolor name="error" default="error"/>
-    <fontcolor name="comment" default="comment"/>
-    <fontcolor name="identifier" default="identifier"/>
-    <fontcolor name="whitespace" default="whitespace"/>
-    <fontcolor name="regexp" foreColor="9933CC" default="regexp"/>
-    <fontcolor name="field" default="field"/>
-    <fontcolor name="separator" default="separator"/>
+  <fontcolor name="keyword" default="keyword"/>
+  <fontcolor name="number" default="number"/>
+  <fontcolor name="arrow" foreColor="magenta">
+    <font style="bold" />
+  </fontcolor>
+  <fontcolor name="function" foreColor="blue">
+    <font style="bold" />
+  </fontcolor>
+  <fontcolor name="operator" default="operator"/>
+  <fontcolor name="string" default="string"/>
+  <fontcolor name="comment" default="comment"/>
+  <fontcolor name="error" default="error"/>
+  <fontcolor name="comment" default="comment"/>
+  <fontcolor name="identifier" default="identifier"/>
+  <fontcolor name="whitespace" default="whitespace"/>
+  <fontcolor name="regexp" foreColor="9933CC" default="regexp"/>
+  <fontcolor name="field" default="field"/>
+  <fontcolor name="separator" default="separator"/>
 
 </fontscolors>

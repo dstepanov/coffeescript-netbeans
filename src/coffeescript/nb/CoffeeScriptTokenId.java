@@ -17,7 +17,7 @@ import org.netbeans.api.lexer.TokenId;
 import static coffeescript.nb.CoffeeScriptTokenId.Category.*;
 
 /**
- * 
+ *
  * @author Denis Stepanov
  */
 public enum CoffeeScriptTokenId implements TokenId {
@@ -25,6 +25,8 @@ public enum CoffeeScriptTokenId implements TokenId {
     ERROR(null, ERROR_CAT),
     NEW("new", KEYWORD_CAT),
     IDENTIFIER(null, IDENTIFIER_CAT),
+    FUNCTION(null, FUNCTION_CAT),
+    ARROW("->", ARROW_CAT),
     REGEX(null, REGEXP_CAT),
     HEREGEX(null, REGEXP_CAT),
     NUMBER(null, NUMBER_CAT),
@@ -37,6 +39,8 @@ public enum CoffeeScriptTokenId implements TokenId {
     OUTDENT(null, WHITESPACE_CAT),
     EOL(null, WHITESPACE_CAT),
     COMMENT(null, COMMENT_CAT),
+    FLPAREN(null, FUNCTION_CAT),
+    FRPAREN(null, FUNCTION_CAT),
     LPAREN("(", SEPARATOR_CAT),
     RPAREN(")", SEPARATOR_CAT),
     LBRACE("{", SEPARATOR_CAT),
@@ -98,6 +102,8 @@ public enum CoffeeScriptTokenId implements TokenId {
         ERROR_CAT("error"),
         NUMBER_CAT("number"),
         IDENTIFIER_CAT("identifier"),
+        FUNCTION_CAT("function"),
+        ARROW_CAT("arrow"),
         FIELD_CAT("field");
         private String name;
 
