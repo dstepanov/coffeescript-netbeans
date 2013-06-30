@@ -42,11 +42,12 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 TEXTID_TO_TOKEN.put(token.fixedText(), token);
             }
         }
-        for (String jsKeywork : Arrays.asList("true", "false", "null", "this", "new", "delete", "typeof", "in", "instanceof",
+        for (String jsKeyword : Arrays.asList("true", "false", "null", "this", "new", "delete", "typeof", "in", "instanceof",
                 "return", "throw", "break", "continue", "debugger", "if", "else", "switch", "for", "while", "do", "try", "catch", "finally",
-                "class", "extends", "super")) {
-            TEXTID_TO_TOKEN.put(jsKeywork, ANY_KEYWORD);
+                "extends", "super")) {
+            TEXTID_TO_TOKEN.put(jsKeyword, ANY_KEYWORD);
         }
+        TEXTID_TO_TOKEN.put("class", CLASS);
         for (String coffeeKeyword : Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "when")) {
             TEXTID_TO_TOKEN.put(coffeeKeyword, ANY_KEYWORD);
         }

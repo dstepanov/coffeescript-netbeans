@@ -22,6 +22,7 @@ import static coffeescript.nb.CoffeeScriptTokenId.Category.*;
  */
 public enum CoffeeScriptTokenId implements TokenId {
 
+    CLASS("class", CLASS_CAT),
     ERROR(null, ERROR_CAT),
     NEW("new", KEYWORD_CAT),
     IDENTIFIER(null, IDENTIFIER_CAT),
@@ -92,6 +93,7 @@ public enum CoffeeScriptTokenId implements TokenId {
 
     public static enum Category {
 
+        CLASS_CAT("class_keyword"),
         COMMENT_CAT("comment"),
         KEYWORD_CAT("keyword"),
         REGEXP_CAT("regexp"),
