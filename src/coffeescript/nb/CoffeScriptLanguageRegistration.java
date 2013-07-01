@@ -15,6 +15,7 @@ package coffeescript.nb;
 
 import org.netbeans.api.lexer.Language;
 import org.netbeans.modules.csl.api.Formatter;
+import org.netbeans.modules.csl.api.SemanticAnalyzer;
 import org.netbeans.modules.csl.api.StructureScanner;
 import org.netbeans.modules.csl.spi.DefaultLanguageConfig;
 import org.netbeans.modules.csl.spi.LanguageRegistration;
@@ -66,4 +67,10 @@ public class CoffeScriptLanguageRegistration extends DefaultLanguageConfig {
     public boolean hasStructureScanner() {
         return true;
     }
+
+    @Override
+    public SemanticAnalyzer getSemanticAnalyzer() {
+        return new CoffeeScriptSemanticAnalyzer();
+    }
+    
 }

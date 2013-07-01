@@ -15,4 +15,8 @@
     <fontcolor name="field" default="field"/>
     <fontcolor name="separator" default="separator"/>
 
+    <fontcolor name="mod-method">
+        <font style="bold"/>
+    </fontcolor>
+    
 </fontscolors>
