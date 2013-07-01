@@ -1,4 +1,4 @@
-# Assignment 2 :
+# Assignment:
 number   = 42
 opposite = true
 

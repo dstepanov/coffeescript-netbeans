@@ -2,14 +2,10 @@
 <!DOCTYPE fontscolors PUBLIC "-//NetBeans//DTD Editor Fonts and Colors settings 1.1//EN" "http://www.netbeans.org/dtds/EditorFontsColors-1_1.dtd">
 
 <fontscolors>
-  <fontcolor name="class_keyword" foreColor="blue">
-    <font style="bold" />
-  </fontcolor>
+  <fontcolor name="class_keyword" default="class"/>
   <fontcolor name="keyword" default="keyword"/>
   <fontcolor name="number" default="number"/>
-  <fontcolor name="arrow" foreColor="magenta">
-    <font style="bold" />
-  </fontcolor>
+  <fontcolor name="arrow" default='operator'/>
   <fontcolor name="function" foreColor="blue">
     <font style="bold" />
   </fontcolor>
