@@ -298,7 +298,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
               c = input.read();
               reads++;
             }
-            if(c == ':' || c == '=') {
+            if(!func_defined && (c == ':' || c == '=')) {
                 while(true) {
                     c = input.read();
                     reads++;
