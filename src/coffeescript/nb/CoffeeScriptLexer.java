@@ -302,7 +302,7 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 while(true) {
                     c = input.read();
                     reads++;
-                    if(c == '-') {
+                    if(c == '-' || c == '=') {
                         c = input.read();
                         reads++;
                         if(c == '>') {
@@ -450,6 +450,13 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                   return token(ARROW);
                 }
                 return inputMatch('-') ? token(DEC) : token(ANY_OPERATOR);
+            }
+            case '=': {
+              if(peek() == '>') {
+                input.read();
+                func_defined = false;
+                return token(ARROW);
+              }
             }
         }
         return token(ANY_OPERATOR);
