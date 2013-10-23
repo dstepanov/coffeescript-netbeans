@@ -72,7 +72,7 @@ public interface CoffeeScriptCompiler {
         }
         
         public String getMessage() {
-            return message;
+            return "Error (line: " + line + ", column: " + column + "): " + message;
         }
     }
 }
