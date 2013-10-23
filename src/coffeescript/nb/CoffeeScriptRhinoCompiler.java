@@ -56,7 +56,12 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
                 String message = (String) ScriptableObject.getProperty(error, "message");
                 IdScriptableObject location = (IdScriptableObject) ScriptableObject.getProperty(error, "location");
                 Double line = (Double) ScriptableObject.getProperty(location, "first_line");
-                Double column = (Double) ScriptableObject.getProperty(location, "first_column");
+                Double column;
+                if(col instanceof Integer) {
+                    column = ((Integer)col).doubleValue();
+                } else {
+                    column = (Double)col;
+                }
                 return new CompilerResult(new Error(line == null ? -1 : line.intValue()+1, column == null ? 0 : column.intValue()+1, message, message));
             }
             return new CompilerResult(new Error(-1, "", e.getMessage()));
