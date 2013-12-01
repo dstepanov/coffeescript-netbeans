@@ -230,10 +230,12 @@ public class CoffeeScriptAction extends AbstractAction implements ContextAwareAc
         public void compile() throws Exception {
             LifecycleManager.getDefault().saveAll();
             for (CoffeeScriptDataObject coffeeFile : data) {
+                boolean literate;
                 ProgressHandle handle = ProgressHandleFactory.createHandle("Compiling " + coffeeFile.getPrimaryFile().getNameExt(), this);
                 try {
                     handle.start();
-                    CoffeeScriptCompiler.CompilerResult result = CoffeeScriptSettings.getCompiler().compile(coffeeFile.getPrimaryFile().asText(), bare);
+                    literate = coffeeFile.getPrimaryFile().getExt().equals(CoffeeScriptLanguage.LITERATE_EXTENSION);
+                    CoffeeScriptCompiler.CompilerResult result = CoffeeScriptSettings.getCompiler().compile(coffeeFile.getPrimaryFile().asText(), bare, literate);
                     if (result == null) {
                         return; // Canceled
                     }

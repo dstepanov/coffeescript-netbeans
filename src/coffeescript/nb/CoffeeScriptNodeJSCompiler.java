@@ -171,14 +171,14 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
         result.out = outHolder[0];
         return result;
     }
-
-    public CompilerResult compile(final String code, boolean bare) {
+    
+    public CompilerResult compile(final String code, boolean bare, boolean literate) {
         try {
             String exec = CoffeeScriptSettings.get().getCompilerExec();
             ExecResult result = exec(code,
                     Utilities.isWindows()
-                    ? createCompileProcessBuilderWindows(exec, bare)
-                    : createCompileProcessBuilderNix(exec, bare));
+                    ? createCompileProcessBuilderWindows(exec, bare, literate)
+                    : createCompileProcessBuilderNix(exec, bare, literate));
             String err = result.err;
             String out = result.out;
             if (!err.isEmpty()) {
@@ -231,12 +231,12 @@ public class CoffeeScriptNodeJSCompiler implements CoffeeScriptCompiler {
         return new ProcessBuilder(exec, "-v");
     }
 
-    protected ProcessBuilder createCompileProcessBuilderWindows(String exec, boolean bare) {
-        return new ProcessBuilder("cmd", "/c", "\"\"" + exec + "\"" + (bare ? " -scb" : " -sc") + " \"");
+    protected ProcessBuilder createCompileProcessBuilderWindows(String exec, boolean bare, boolean literate) {
+        return new ProcessBuilder("cmd", "/c", "\"\"" + exec + "\" -sc" + (bare ? "b" : "") + (literate ? "l" : "") + " \"");
     }
 
-    protected ProcessBuilder createCompileProcessBuilderNix(String exec, boolean bare) {
-        return new ProcessBuilder(exec, (bare ? "-scb" : "-sc"));
+    protected ProcessBuilder createCompileProcessBuilderNix(String exec, boolean bare, boolean literate) {
+        return new ProcessBuilder(exec, "-sc" + (bare ? "b" : "") + (literate ? "l" : ""));
     }
 
     private static class ExecResult {
