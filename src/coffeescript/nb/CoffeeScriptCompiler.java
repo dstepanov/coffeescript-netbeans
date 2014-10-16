@@ -19,7 +19,7 @@ package coffeescript.nb;
  */
 public interface CoffeeScriptCompiler {
     
-    public CompilerResult compile(String code, boolean bare);
+    public CompilerResult compile(String code, boolean bare, boolean literate);
     
     public static class CompilerResult {
         

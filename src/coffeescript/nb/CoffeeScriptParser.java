@@ -48,8 +48,10 @@ public class CoffeeScriptParser extends Parser {
         future = PARSER_TASK.submit(new Callable<ParsingResult>() {
 
             public ParsingResult call() throws Exception {
+                boolean literate;
                 CharSequence text = snapshot.getText();
-                CoffeeScriptCompiler.CompilerResult compilerResult = CoffeeScriptSettings.getCompiler().compile(text.toString(), CoffeeScriptSettings.get().isBare());
+                literate = snapshot.getSource().getFileObject().getExt().equals(CoffeeScriptLanguage.LITERATE_EXTENSION);
+                CoffeeScriptCompiler.CompilerResult compilerResult = CoffeeScriptSettings.getCompiler().compile(text.toString(), CoffeeScriptSettings.get().isBare(), literate);
                 return new ParsingResult(snapshot, compilerResult);
             }
         });

@@ -44,10 +44,11 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
         }
         return INSTANCE;
     }
+    
 
-    public CompilerResult compile(String code, boolean bare) {
+    public CompilerResult compile(String code, boolean bare, boolean literate) {
         try {
-            return new CompilerResult(compileCode(code, bare));
+            return new CompilerResult(compileCode(code, bare, literate));
         } catch (StoppedContextException e) {
             return null; // Canceled
         } catch (JavaScriptException e) {
@@ -63,7 +64,7 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
         }
     }
 
-    private String compileCode(String code, boolean bare) {
+    private String compileCode(String code, boolean bare, boolean literate) {
         Context.enter();
         Context ctx = new StoppableContext();
         try {
@@ -72,7 +73,7 @@ public class CoffeeScriptRhinoCompiler implements CoffeeScriptCompiler {
             Scriptable scope = ctx.newObject(ctx.initStandardObjects());
             getScriptFromClasspath("coffeescript/nb/resources/coffee-script.js").exec(ctx, scope);
             scope.put("code", scope, code);
-            String options = String.format("{bare: %b}", bare);
+            String options = String.format("{bare: %b, literate: %b}", bare, literate);
             String script = String.format("CoffeeScript.compile(code, %s);", options);
             return (String) getScriptFromString(script).exec(ctx, scope);
 
