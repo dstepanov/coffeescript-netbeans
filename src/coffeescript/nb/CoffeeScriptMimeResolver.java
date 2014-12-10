@@ -17,7 +17,7 @@ public class CoffeeScriptMimeResolver extends MIMEResolver {
 
     @Override
     public String findMIMEType(FileObject fo) {
-        if (fo.getExt().equals("coffee") || fo.getNameExt().equals("Cakefile")) {
+        if (fo.getExt().equals("coffee") || fo.getNameExt().equals("Cakefile") || fo.getExt().equals(CoffeeScriptLanguage.LITERATE_EXTENSION)) {
             return CoffeeScriptLanguage.MIME_TYPE;
         }
         return null;
