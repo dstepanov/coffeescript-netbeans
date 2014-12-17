@@ -42,11 +42,12 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 TEXTID_TO_TOKEN.put(token.fixedText(), token);
             }
         }
-        for (String jsKeywork : Arrays.asList("true", "false", "null", "this", "new", "delete", "typeof", "in", "instanceof",
+        for (String jsKeyword : Arrays.asList("true", "false", "null", "this", "new", "delete", "typeof", "in", "instanceof",
                 "return", "throw", "break", "continue", "debugger", "if", "else", "switch", "for", "while", "do", "try", "catch", "finally",
-                "class", "extends", "super")) {
-            TEXTID_TO_TOKEN.put(jsKeywork, ANY_KEYWORD);
+                "extends", "super")) {
+            TEXTID_TO_TOKEN.put(jsKeyword, ANY_KEYWORD);
         }
+        TEXTID_TO_TOKEN.put("class", CLASS);
         for (String coffeeKeyword : Arrays.asList("undefined", "then", "unless", "until", "loop", "of", "by", "when")) {
             TEXTID_TO_TOKEN.put(coffeeKeyword, ANY_KEYWORD);
         }
@@ -62,8 +63,9 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
     static {
         NOT_SPACED_REGEX.addAll(NOT_REGEX);
     }
-    // 
+    //
     private CoffeeScriptTokenId prevToken;
+    private boolean func_defined = false;
     private boolean prevSpaced;
     private int indent;
 
@@ -288,6 +290,34 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return token(IDENTIFIER);
             }
 
+            int reads = 0;
+
+            c = input.read();
+            reads++;
+            while(isSpaceCharacter(c)) {
+              c = input.read();
+              reads++;
+            }
+            if(!func_defined && (c == ':' || c == '=')) {
+                while(true) {
+                    c = input.read();
+                    reads++;
+                    if(c == '-' || c == '=') {
+                        c = input.read();
+                        reads++;
+                        if(c == '>') {
+                          input.backup(reads);
+                          func_defined = true;
+                          return token(FUNCTION);
+                        }
+                    }
+                    if(c == '\n' || c == ':' || c == '=') {
+                      break;
+                    }
+                }
+            }
+            input.backup(reads);
+
             String text = buffer.toString();
             if (!containsEscape) {
                 CoffeeScriptTokenId token = TEXTID_TO_TOKEN.get(text);
@@ -305,9 +335,17 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
             case ';':
                 return token(SEMI);
             case '(':
-                return token(LPAREN);
+                if(func_defined) {
+                  return token (FLPAREN);
+                } else {
+                  return token(LPAREN);
+                }
             case ')':
-                return token(RPAREN);
+                if(func_defined) {
+                  return token (FRPAREN);
+                } else {
+                  return token(RPAREN);
+                }
             case '{':
                 return token(LBRACE);
             case '}':
@@ -406,7 +444,19 @@ public class CoffeeScriptLexer extends CoffeeScriptLexerBase<CoffeeScriptTokenId
                 return inputMatch('+') ? token(INC) : token(ANY_OPERATOR);
             }
             case '-': {
+                if(peek() == '>') {
+                  input.read();
+                  func_defined = false;
+                  return token(ARROW);
+                }
                 return inputMatch('-') ? token(DEC) : token(ANY_OPERATOR);
+            }
+            case '=': {
+              if(peek() == '>') {
+                input.read();
+                func_defined = false;
+                return token(ARROW);
+              }
             }
         }
         return token(ANY_OPERATOR);
